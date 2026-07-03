@@ -4,6 +4,7 @@
   import TerminalNav from "$lib/home/TerminalNav.svelte"
   import HudChrome from "$lib/home/HudChrome.svelte"
   import HeroScene from "$lib/home/HeroScene.svelte"
+  import { markTourStarted } from "$lib/tour/tour"
 
   const prefersReduced =
     typeof window !== "undefined" &&
@@ -243,7 +244,10 @@
       <div class="pointer-events-auto mt-10 flex flex-wrap items-center gap-4">
         <button
           type="button"
-          onclick={() => smoothTo("begin")}
+          onclick={() => {
+            markTourStarted()
+            smoothTo("begin")
+          }}
           class="btn btn-primary btn-lg rounded-none px-8 font-mono text-sm tracking-[0.08em] uppercase"
         >
           Start the Tour

@@ -53,11 +53,7 @@
   <div class="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 lg:px-8">
     <header class="hud flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-line)] pb-3">
       <span>TODAY OS · STUDIO / BATCH-01</span>
-      <nav class="flex gap-5">
-        <a href="/" class="transition-colors hover:text-primary">INDEX</a>
-        <a href="/admin" class="transition-colors hover:text-primary">AD OPS</a>
-        <a href="/studio" class="transition-colors hover:text-primary">← EDITOR</a>
-      </nav>
+      <span class="text-base-content/40" aria-hidden="true">STOP 3 · PERSONALIZE</span>
     </header>
 
     <section>
