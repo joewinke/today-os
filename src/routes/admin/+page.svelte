@@ -28,8 +28,12 @@
   <div class="bg-base-100 p-5 sm:p-6">
     <p class="hud text-primary mb-3">DEMO · HOW THIS WORKS</p>
     <p class="text-base-content/80 max-w-2xl text-sm leading-relaxed">
-      Four sample ad accounts &mdash; Google, Meta, Taboola, TikTok &mdash; seeded with realistic
-      data and deliberate problems. <span class="text-base-content">No real spend.</span> In
+      <span class="text-base-content">Different layer from the funnel scan.</span> That graded a
+      landing page &mdash; where traffic lands. This audits the <span class="text-base-content"
+        >ad accounts buying the traffic</span
+      > &mdash; Google, Meta, Taboola, TikTok &mdash; where the biggest budget leaks hide. Four sample
+      accounts here, seeded with realistic data and deliberate problems.
+      <span class="text-base-content">No real spend, and unrelated to any URL you scanned.</span> In
       production these are your live accounts, audited on a schedule. Drive the loop in three steps:
     </p>
     <ol class="mt-5 grid gap-4 sm:grid-cols-3">
@@ -89,10 +93,11 @@
   class="mt-8 grid grid-cols-2 gap-px border lg:grid-cols-4"
   style="border-color: var(--color-line); background: var(--color-line)"
 >
-  {#each [{ label: "ACCOUNTS CONNECTED", value: String(stats.accounts) }, { label: "RECS PROPOSED", value: String(stats.proposed) }, { label: "EST. MONTHLY WASTE DETECTED", value: stats.wasteCentsMonthly > 0 ? fmtUsd(stats.wasteCentsMonthly) : "—" }, { label: "LAST SWEEP", value: stats.lastSweepAt ? relativePast(stats.lastSweepAt) : "never" }] as stat, i (stat.label)}
+  {#each [{ label: "ACCOUNTS CONNECTED", value: String(stats.accounts), sub: "Google · Meta · Taboola · TikTok" }, { label: "RECS PROPOSED", value: String(stats.proposed), sub: "awaiting your approval" }, { label: "EST. MONTHLY WASTE", value: stats.wasteCentsMonthly > 0 ? fmtUsd(stats.wasteCentsMonthly) : "—", sub: `across the ${stats.accounts} ad accounts` }, { label: "LAST SWEEP", value: stats.lastSweepAt ? relativePast(stats.lastSweepAt) : "never", sub: "cron tick over due accounts" }] as stat, i (stat.label)}
     <div class="bg-base-100 p-4 sm:p-5" use:reveal={{ animation: "fade-in", delay: i * 0.06 }}>
       <p class="hud">{stat.label}</p>
       <p class="mt-2 font-mono text-2xl sm:text-3xl">{stat.value}</p>
+      <p class="hud mt-1.5 text-base-content/40" style="letter-spacing: 0.02em">{stat.sub}</p>
     </div>
   {/each}
 </div>
