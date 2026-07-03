@@ -1,7 +1,31 @@
 import { fail } from "@sveltejs/kit"
 import type { Actions } from "./$types"
-import { analyzeUrl } from "$lib/home/funnelChecks"
+import { analyzeUrl, type FunnelReport } from "$lib/home/funnelChecks"
 import { ITSTODAY_SNAPSHOT, SNAPSHOT_HOSTS, hostKey } from "$lib/home/snapshots"
+import { domainOf, activateCached, setScannedTheme, resetTheme } from "$lib/adops/theme"
+import { rethemeProposed } from "$lib/adops/store"
+import { buildThemeFromScan } from "$lib/server/scanTheme"
+
+/**
+ * Fire-and-forget: theme the whole demo to the scanned site. Runs AFTER the
+ * score is returned, so it never adds latency to the scan. Cache-first (the
+ * pre-seeded itstoday.org + any prior scan are instant, no spend); otherwise one
+ * bounded Haiku call. On any failure the home-services default stands.
+ */
+function themeFromScan(report: FunnelReport, fallbackUrl: string): void {
+  const domain = domainOf(report.finalUrl || fallbackUrl)
+  if (activateCached(domain)) {
+    void rethemeProposed() // pre-seeded itstoday or a prior scan — re-theme existing recs
+    return
+  }
+  buildThemeFromScan(domain, report.pageTitle, report.pageDescription)
+    .then((theme) => {
+      if (theme) setScannedTheme(theme)
+      else resetTheme()
+    })
+    .then(() => rethemeProposed())
+    .catch(() => resetTheme())
+}
 
 export const actions: Actions = {
   default: async ({ request }) => {
@@ -23,11 +47,14 @@ export const actions: Actions = {
         live,
         new Promise<null>((resolve) => setTimeout(() => resolve(null), 6000)),
       ])
-      return { report: raced ?? ITSTODAY_SNAPSHOT, url }
+      const report = raced ?? ITSTODAY_SNAPSHOT
+      themeFromScan(report, url)
+      return { report, url }
     }
 
     try {
       const report = await analyzeUrl(url)
+      themeFromScan(report, url)
       return { report, url }
     } catch (e) {
       let message = "Could not reach that URL."

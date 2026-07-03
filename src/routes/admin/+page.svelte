@@ -12,6 +12,13 @@
   let auditing = $state<string | null>(null)
 
   const stats = $derived(data.stats)
+  const theme = $derived(data.theme)
+
+  function scannedClock(ms: number | null): string {
+    if (!ms) return ""
+    const d = new Date(ms)
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
+  }
 
   function isDue(nextRunAt: string | null): boolean {
     return nextRunAt != null && new Date(nextRunAt).getTime() <= Date.now()
@@ -51,9 +58,18 @@
   })
 </script>
 
-<div>
-  <p class="hud mb-2">COMMAND CENTER</p>
-  <h1 class="statement text-4xl sm:text-5xl">Ad Ops</h1>
+<div class="flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <p class="hud mb-2">COMMAND CENTER</p>
+    <h1 class="statement text-4xl sm:text-5xl">Ad Ops</h1>
+  </div>
+  {#if theme.source === "scanned" && theme.domain}
+    <!-- provenance chip: make the scan-reactivity impossible to miss -->
+    <p class="hud border-line text-primary flex items-center gap-2 border px-3 py-1.5">
+      <span class="live-dot"></span>
+      THEMED TO: {theme.domain.toUpperCase()}{scannedClock(theme.scannedAt) ? ` · SCANNED ${scannedClock(theme.scannedAt)}` : ""}
+    </p>
+  {/if}
 </div>
 
 <!-- ORIENTATION: what this is + the one path to follow (a reviewer lands here cold) -->
@@ -64,10 +80,16 @@
       <span class="text-base-content">Different layer from the funnel scan.</span> That graded a
       landing page &mdash; where traffic lands. This audits the <span class="text-base-content"
         >ad accounts buying the traffic</span
-      > &mdash; Google, Meta, Taboola, TikTok &mdash; where the biggest budget leaks hide. Four sample
-      accounts here, seeded with realistic data and deliberate problems.
-      <span class="text-base-content">No real spend, and unrelated to any URL you scanned.</span> In
-      production these are your live accounts, audited on a schedule. Drive the loop in three steps:
+      > &mdash; Google, Meta, Taboola, TikTok &mdash; where the biggest budget leaks hide.
+      {#if theme.source === "scanned"}
+        These accounts are <span class="text-base-content">themed to {theme.domain} &mdash; {theme.business}</span>,
+        so the campaigns match the site you scanned. <span class="text-base-content">Sample metrics, no real spend.</span>
+      {:else}
+        Four sample accounts here, seeded with realistic data and deliberate problems.
+        <span class="text-base-content">No real spend.</span>
+        <span class="text-base-content/60">(Showing the Home&nbsp;Improvement example &mdash; scan a site to tailor this to it.)</span>
+      {/if}
+      In production these are your live accounts, audited on a schedule. Drive the loop in three steps:
     </p>
     <ol class="mt-5 grid gap-4 sm:grid-cols-3">
       {#each [["01", "Run a sweep", stats.accountsDue > 0 ? `audits the ${stats.accountsDue} account${stats.accountsDue === 1 ? "" : "s"} that are due, all at once` : "all due accounts have been audited — open the inbox next"], ["02", "Open the inbox", "read each finding with its evidence and dollar impact"], ["03", "Approve one", "watch the spend-cap gate refuse an unsafe auto-apply"]] as [n, title, sub] (n)}

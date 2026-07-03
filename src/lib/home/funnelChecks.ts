@@ -26,6 +26,9 @@ export interface FunnelReport {
   fetchedAt: string
   responseMs: number
   weightKb: number
+  /** The scanned page's <title> and meta description — used to theme the demo. */
+  pageTitle: string
+  pageDescription: string
 }
 
 const ACTION_VERB_RE =
@@ -320,5 +323,7 @@ export async function analyzeUrl(rawUrl: string): Promise<FunnelReport> {
     fetchedAt: new Date().toISOString(),
     responseMs,
     weightKb,
+    pageTitle: title,
+    pageDescription: metaDesc,
   }
 }

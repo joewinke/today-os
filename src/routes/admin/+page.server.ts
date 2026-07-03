@@ -7,6 +7,7 @@ import {
   runAudit,
   runSweep,
 } from "$lib/adops/store"
+import { getActiveTheme } from "$lib/adops/theme"
 import type { Actions, PageServerLoad } from "./$types"
 
 export const load: PageServerLoad = async () => {
@@ -15,7 +16,12 @@ export const load: PageServerLoad = async () => {
     proposed: getRecommendations({ accountId: account.id, status: "proposed" }).length,
     lastSnapshotAt: latestSnapshot(account.id)?.taken_at ?? null,
   }))
-  return { accounts, stats: getStats() }
+  const t = getActiveTheme()
+  return {
+    accounts,
+    stats: getStats(),
+    theme: { source: t.source, business: t.business, vertical: t.vertical, domain: t.domain ?? null, scannedAt: t.scannedAt ?? null },
+  }
 }
 
 export const actions: Actions = {

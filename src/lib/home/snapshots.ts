@@ -126,5 +126,7 @@ export const ITSTODAY_SNAPSHOT: FunnelReport = {
   ],
   "fetchedAt": "2026-07-03T13:12:09.184Z",
   "responseMs": 1792,
-  "weightKb": 51
+  "weightKb": 51,
+  "pageTitle": "It's Today Media — Performance Digital Advertising",
+  "pageDescription": ""
 }

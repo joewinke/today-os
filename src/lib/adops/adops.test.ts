@@ -143,7 +143,8 @@ describe("buildRecommendationPrompt", () => {
     const { system, user } = buildRecommendationPrompt(spec, loadDoctrine("google_ads"))
     expect(system).toContain("senior paid-media strategist")
     expect(user).toContain("RED FLAGS")
-    expect(user).toContain("Medicare Advantage — Search — Broad — US")
+    // The snapshot's first (themed) campaign name is carried into the prompt.
+    expect(user).toContain(buildFixtureSpec("acct-google", NOW).campaigns[0].name)
   })
 })
 

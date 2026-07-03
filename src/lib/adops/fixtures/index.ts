@@ -20,6 +20,7 @@
  */
 
 import type { AdSpec, Provider, RecommendationInput } from "../types"
+import { themeSpec } from "../theme"
 
 // ─── Seed account rows (store metadata, not part of the AdSpec) ──────────────
 
@@ -540,7 +541,9 @@ const BUILDERS: Record<string, (now: string) => AdSpec> = {
 export function buildFixtureSpec(accountId: string, now: string = new Date().toISOString()): AdSpec {
   const builder = BUILDERS[accountId]
   if (!builder) throw new Error(`No fixture spec for account "${accountId}"`)
-  return builder(now)
+  // Overlay the active demo theme's display names (home services by default, or
+  // a scanned-site theme). Metrics / violations / gate logic are untouched.
+  return themeSpec(builder(now))
 }
 
 /** A deliberately CLEAN spec (no violations) — used by tests as the control. */

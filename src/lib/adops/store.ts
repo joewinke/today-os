@@ -234,6 +234,22 @@ export async function runSweep(): Promise<AuditRunResult[]> {
   return results
 }
 
+/**
+ * Re-audit every account that already carries proposed recs, so their display
+ * labels pick up the currently-active demo theme. Called fire-and-forget when a
+ * scan changes the theme, so the pre-seeded inbox content re-themes to the
+ * scanned site instead of showing stale (default) campaign names. Accounts still
+ * awaiting their first audit stay due for the reviewer's sweep.
+ */
+export async function rethemeProposed(): Promise<void> {
+  const ids = new Set(
+    state.recommendations.filter((r) => r.status === "proposed").map((r) => r.account_id),
+  )
+  await Promise.all(
+    [...ids].map((id) => (state.accounts.get(id)?.enabled ? runAudit(id) : Promise.resolve(null))),
+  )
+}
+
 // ─── Approve / dismiss ───────────────────────────────────────────────────────
 
 export function approveRecommendation(recId: string): Recommendation {
