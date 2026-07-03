@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "note": "Effects library index for the Today OS creative studio. Maps each asset key (referenced by auto-effects suggestions) to a file under this directory. Ported from the demo-editor effects bank; see the EFFECTS-CONTRACT concept in /studio.",
+  "effects": {
+    "angelic-choir": {
+      "file": "sfx/angelic-choir.mp3",
+      "kind": "sfx",
+      "label": "Angelic Choir / \u201cahh\u201d Swell",
+      "duration": 2.6,
+      "tags": [
+        "triumph",
+        "reveal",
+        "there-it-is",
+        "uplift",
+        "swell",
+        "comedic"
+      ]
+    },
+    "sad-trombone": {
+      "file": "sfx/sad-trombone.mp3",
+      "kind": "sfx",
+      "label": "Sad Trombone (wah-wah)",
+      "duration": 2.0,
+      "tags": [
+        "fail",
+        "problem",
+        "comedic",
+        "sting",
+        "letdown"
+      ]
+    },
+    "record-scratch": {
+      "file": "sfx/record-scratch.mp3",
+      "kind": "sfx",
+      "label": "Record Scratch",
+      "duration": 0.6,
+      "tags": [
+        "stop",
+        "wait-what",
+        "comedic",
+        "pivot",
+        "interrupt"
+      ]
+    },
+    "ka-ching": {
+      "file": "sfx/ka-ching.mp3",
+      "kind": "sfx",
+      "label": "Ka-ching / Cash Register",
+      "duration": 0.9,
+      "tags": [
+        "money",
+        "revenue",
+        "win",
+        "sale",
+        "roi"
+      ]
+    },
+    "whoosh": {
+      "file": "sfx/whoosh.mp3",
+      "kind": "sfx",
+      "label": "Whoosh",
+      "duration": 0.8,
+      "tags": [
+        "transition",
+        "swipe",
+        "motion",
+        "reveal",
+        "fast"
+      ]
+    },
+    "ding": {
+      "file": "sfx/ding.mp3",
+      "kind": "sfx",
+      "label": "Ding / Bell",
+      "duration": 1.2,
+      "tags": [
+        "notify",
+        "correct",
+        "idea",
+        "point",
+        "checkmark"
+      ]
+    },
+    "drumroll": {
+      "file": "sfx/drumroll.mp3",
+      "kind": "sfx",
+      "label": "Drumroll",
+      "duration": 2.0,
+      "tags": [
+        "anticipation",
+        "reveal",
+        "build",
+        "suspense",
+        "announce"
+      ]
+    },
+    "boing": {
+      "file": "sfx/boing.mp3",
+      "kind": "sfx",
+      "label": "Boing",
+      "duration": 0.7,
+      "tags": [
+        "bounce",
+        "comedic",
+        "pop",
+        "spring",
+        "playful"
+      ]
+    },
+    "light-rays": {
+      "file": "overlays/light-rays.webm",
+      "kind": "overlay",
+      "label": "Light Rays / Halo Glow",
+      "duration": 2.52,
+      "tags": [
+        "triumph",
+        "reveal",
+        "there-it-is",
+        "halo",
+        "glow",
+        "uplift"
+      ]
+    }
+  }
+}
