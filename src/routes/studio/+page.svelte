@@ -582,6 +582,34 @@
         </p>
       </div>
     </div>
+
+    <!-- tour continuation: the studio (stop 03) → personalization, then the thinking (stop 04) -->
+    <div class="mt-6 border-t border-[var(--color-line)] pt-10">
+      <span class="hud text-primary">TOUR STOP 03 · THE STUDIO — DONE · NEXT &rarr; 04</span>
+      <h2 class="statement mt-4 mb-3 text-2xl sm:text-3xl">
+        You&rsquo;ve edited the ad.<br />Now scale it &mdash; then read the plan.
+      </h2>
+      <p class="text-base-content/70 mb-8 max-w-xl text-sm leading-relaxed">
+        The edit is data, so it personalizes per lead: one shoot, a variant for every row of the
+        list. Then the README answers the three questions the contest asks &mdash; what it does, why
+        this, and what I&rsquo;d build next.
+      </p>
+      <div class="flex flex-wrap items-center gap-5">
+        <a
+          href="/studio/batch"
+          class="btn btn-primary btn-lg rounded-none px-8 font-mono text-sm tracking-[0.08em] uppercase"
+        >
+          Batch: Personalize per Lead &rarr;
+        </a>
+        <a
+          href="https://github.com/joewinke/today-os#readme"
+          rel="external"
+          class="hud text-base-content/60 hover:text-primary transition-colors"
+        >
+          OR FINISH THE TOUR &rarr; 04 · THE THINKING (README)
+        </a>
+      </div>
+    </div>
   </div>
 </div>
 

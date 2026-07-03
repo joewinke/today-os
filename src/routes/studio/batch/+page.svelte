@@ -144,6 +144,31 @@
         </p>
       </div>
     </div>
+
+    <!-- tour complete: batch is the studio's last act; finish at the README (stop 04) -->
+    <div class="mt-6 border-t border-[var(--color-line)] pt-10">
+      <span class="hud text-primary">TOUR STOP 03 · COMPLETE · LAST STOP &rarr; 04</span>
+      <h2 class="statement mt-4 mb-3 text-2xl text-base-content sm:text-3xl">
+        That&rsquo;s the system.<br />Here&rsquo;s the thinking.
+      </h2>
+      <p class="text-base-content/70 mb-8 max-w-xl text-sm leading-relaxed">
+        You&rsquo;ve run the scan, worked the console, and edited the creative. The README answers
+        the three questions the contest asks &mdash; what it does, why this one, and what I&rsquo;d
+        build next with the keys.
+      </p>
+      <div class="flex flex-wrap items-center gap-5">
+        <a
+          href="https://github.com/joewinke/today-os#readme"
+          rel="external"
+          class="btn btn-primary btn-lg rounded-none px-8 font-mono text-sm tracking-[0.08em] uppercase"
+        >
+          Read the Thinking (README) &rarr;
+        </a>
+        <a href="/#begin" class="hud text-base-content/60 hover:text-primary transition-colors">
+          OR BACK TO THE START &uarr;
+        </a>
+      </div>
+    </div>
   </div>
 </div>
 
