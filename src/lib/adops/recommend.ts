@@ -174,7 +174,8 @@ export async function getLlmRecommendations(
     // A live call that produced nothing parseable degrades to fixtures so the
     // demo never renders an inexplicably empty LLM lane.
     return recs.length > 0 ? { recs, via: "anthropic" } : { recs: fixture, via: "fixture" }
-  } catch {
+  } catch (err) {
+    console.warn("[adops] live LLM lane failed, degrading to fixtures:", err instanceof Error ? err.message : err)
     return { recs: fixture, via: "fixture" }
   }
 }

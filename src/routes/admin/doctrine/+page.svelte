@@ -1,9 +1,10 @@
 <script lang="ts">
+  import { untrack } from "svelte"
   import type { PageServerData } from "./$types"
 
   let { data }: { data: PageServerData } = $props()
 
-  let active = $state(data.docs[0]?.provider ?? "google_ads")
+  let active = $state(untrack(() => data.docs[0]?.provider ?? "google_ads"))
 
   const activeDoc = $derived(data.docs.find((d) => d.provider === active) ?? data.docs[0])
 </script>
@@ -32,9 +33,10 @@
   {/each}
 </div>
 
-<article
+<div
   id="doctrine-panel"
   role="tabpanel"
+  tabindex="0"
   class="doctrine mt-6 border p-6 sm:p-8"
   style="border-color: var(--color-line)"
 >
@@ -43,7 +45,7 @@
   </p>
   <!-- eslint-disable-next-line svelte/no-at-html-tags — repo-controlled markdown, HTML-escaped before rendering -->
   {@html activeDoc.html}
-</article>
+</div>
 
 <style>
   .doctrine :global(h2) {
