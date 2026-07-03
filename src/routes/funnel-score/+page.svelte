@@ -221,45 +221,36 @@
 
           <!-- ==== HANDOFF: the score is the diagnosis; the OS is the treatment ==== -->
           <div class="border-line mt-14 border-t pt-10">
-            <span class="hud text-primary">TOUR STOP 01 COMPLETE · NEXT &rarr; 02</span>
+            <span class="hud text-primary">TOUR STOP 01 COMPLETE · NEXT &rarr; 02 / THE CONSOLE</span>
             <h2 class="statement mt-4 mb-3 text-2xl sm:text-3xl">
               The score is the diagnosis.<br />The OS is the treatment.
             </h2>
-            <p class="text-base-content/70 mb-8 max-w-lg text-sm leading-relaxed">
-              A number tells you the funnel leaks. The console finds the same class of problems
-              inside your ad accounts every single day — and proposes the fix, with the evidence,
-              behind a human approval gate.
+            <p class="text-base-content/70 mb-8 max-w-xl text-sm leading-relaxed">
+              You just surfaced {report.fixFirst.length}
+              {report.fixFirst.length === 1 ? "leak" : "leaks"} on one page. The console does this across
+              every ad account — Google, Meta, Taboola, TikTok — on a cadence, and proposes each fix
+              with the evidence, behind a human approval gate. That is the job.
             </p>
-            <div class="border-line divide-line divide-y border">
-              <a
-                href="/admin"
-                class="hover:bg-base-200 group grid grid-cols-[auto_1fr_auto] items-baseline gap-x-5 p-5 transition-colors sm:p-6"
-              >
-                <span class="hud text-primary">02</span>
-                <span>
-                  <span class="statement block text-lg sm:text-xl">Open the Console</span>
-                  <span class="text-base-content/60 mt-1 block text-[13px] leading-relaxed">
-                    Run a sweep, watch the audit loop propose fixes like these — and watch the gate
-                    refuse an unsafe one.
-                  </span>
-                </span>
-                <span class="hud transition-transform group-hover:translate-x-1">&rarr;</span>
+
+            <!-- one unmistakable next action -->
+            <a
+              href="/admin"
+              class="btn btn-primary btn-lg group h-auto min-h-0 flex-col items-start gap-1 rounded-none px-8 py-5 text-left normal-case"
+            >
+              <span class="font-mono text-sm font-bold tracking-[0.08em] uppercase">
+                Open the Live Console
+                <span class="inline-block transition-transform group-hover:translate-x-1">&rarr;</span>
+              </span>
+              <span class="text-primary-content/80 font-mono text-[11px] tracking-wide normal-case">
+                Run a sweep · approve a fix · watch the gate refuse an unsafe one
+              </span>
+            </a>
+
+            <p class="mt-6">
+              <a href="/studio" class="hud text-base-content/60 hover:text-primary transition-colors">
+                OR — TOUR 03 &rarr; GENERATE THE MATCHING CREATIVE IN THE STUDIO
               </a>
-              <a
-                href="/studio"
-                class="hover:bg-base-200 group grid grid-cols-[auto_1fr_auto] items-baseline gap-x-5 p-5 transition-colors sm:p-6"
-              >
-                <span class="hud text-base-content/50">03</span>
-                <span>
-                  <span class="statement block text-lg sm:text-xl">Then Generate the Creative</span>
-                  <span class="text-base-content/60 mt-1 block text-[13px] leading-relaxed">
-                    Fresh pages need fresh ads. Mint AI b-roll and personalize per lead in the
-                    studio.
-                  </span>
-                </span>
-                <span class="hud transition-transform group-hover:translate-x-1">&rarr;</span>
-              </a>
-            </div>
+            </p>
           </div>
         </div>
       </div>
