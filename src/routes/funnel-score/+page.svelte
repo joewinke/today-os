@@ -1,5 +1,6 @@
 <script lang="ts">
   import "$lib/home/home.css"
+  import { tick } from "svelte"
   import { enhance } from "$app/forms"
   import { page } from "$app/state"
   import TerminalNav from "$lib/home/TerminalNav.svelte"
@@ -12,16 +13,19 @@
   let scanning = $state(false)
   // Prefill from ?url= (the homepage "scan itstoday.org" deep link) or a prior submit.
   let urlValue = $state(page.url.searchParams.get("url") ?? "")
-  let formEl = $state<HTMLFormElement | null>(null)
+  let submitEl = $state<HTMLButtonElement | null>(null)
 
   $effect(() => {
     if (form?.url && !urlValue) urlValue = form.url
   })
 
   // One-click preset: fill the field and submit, so a judge never has to type.
-  function scanPreset(url: string) {
+  // Await a tick so the bound input's DOM value flushes before we click —
+  // otherwise the still-empty required field silently blocks the submit.
+  async function scanPreset(url: string) {
     urlValue = url
-    formEl?.requestSubmit()
+    await tick()
+    submitEl?.click()
   }
 
   const report = $derived(form && "report" in form ? form.report : null)
@@ -80,7 +84,6 @@
   <!-- ============ THE INSTRUMENT ============ -->
   <form
     method="POST"
-    bind:this={formEl}
     class="border-line max-w-3xl border"
     use:enhance={() => {
       scanning = true
@@ -107,6 +110,7 @@
       </div>
       <button
         type="submit"
+        bind:this={submitEl}
         disabled={scanning}
         class="btn btn-primary border-line h-auto min-h-16 rounded-none border-0 border-t px-10 font-mono text-sm tracking-[0.08em] uppercase sm:border-t-0 sm:border-l"
       >

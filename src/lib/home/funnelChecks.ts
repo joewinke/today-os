@@ -71,30 +71,50 @@ export function normalizeUrl(input: string): string {
   return new URL(u).href
 }
 
+// A real browser UA: bot-looking UAs get challenged/tarpitted by the WAFs in
+// front of the WordPress sites this tool targets, which manifests as a hang.
+const BROWSER_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+
+/** One fetch attempt with its own timeout budget. */
+async function fetchOnce(url: string, timeoutMs: number): Promise<{ res: Response; html: string; responseMs: number }> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const started = performance.now()
+    const res = await fetch(url, {
+      redirect: "follow",
+      signal: controller.signal,
+      headers: {
+        "user-agent": BROWSER_UA,
+        accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "accept-language": "en-US,en;q=0.9",
+      },
+    })
+    const responseMs = Math.round(performance.now() - started)
+    const html = await res.text()
+    return { res, html, responseMs }
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 export async function analyzeUrl(rawUrl: string): Promise<FunnelReport> {
   const url = normalizeUrl(rawUrl)
 
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), 15_000)
+  // The stall is intermittent (Happy-Eyeballs / WAF tarpit), so a second, shorter
+  // attempt clears most transient failures without punishing the user's wait.
   let res: Response
   let html = ""
   let responseMs = 0
   try {
-    const started = performance.now()
-    res = await fetch(url, {
-      redirect: "follow",
-      signal: controller.signal,
-      headers: {
-        "user-agent":
-          "Mozilla/5.0 (compatible; TodayOS-FunnelScore/1.0; +https://itstoday.org)",
-        accept: "text/html,application/xhtml+xml",
-      },
-    })
-    // time-to-headers, not full body read — fairer speed reading
-    responseMs = Math.round(performance.now() - started)
-    html = await res.text()
-  } finally {
-    clearTimeout(timer)
+    ;({ res, html, responseMs } = await fetchOnce(url, 12_000))
+  } catch (first) {
+    if (first instanceof DOMException && first.name === "AbortError") {
+      ;({ res, html, responseMs } = await fetchOnce(url, 10_000))
+    } else {
+      throw first
+    }
   }
 
   if (!res.ok) {
