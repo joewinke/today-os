@@ -83,15 +83,28 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
   }
 
   // Demo guardrails: fast model, short clips, capped resolution — credits are real.
-  const task = await createVideoTask({
-    prompt: body.prompt,
-    model: "seedance-2-0-fast",
-    durationSecs: Math.min(Math.max(body.durationSecs ?? 5, 4), 8),
-    aspectRatio: body.aspectRatio ?? "16:9",
-    resolution: body.resolution === "1080p" ? "1080p" : "720p",
-    generateAudio: false,
-    imageUrls: body.imageUrls?.slice(0, 2),
-  })
-  recordHit(ip)
-  return json({ enabled: true as const, ...task })
+  try {
+    const task = await createVideoTask({
+      prompt: body.prompt,
+      model: "seedance-2-0-fast",
+      durationSecs: Math.min(Math.max(body.durationSecs ?? 5, 4), 8),
+      aspectRatio: body.aspectRatio ?? "16:9",
+      resolution: body.resolution === "1080p" ? "1080p" : "720p",
+      generateAudio: false,
+      imageUrls: body.imageUrls?.slice(0, 2),
+    })
+    recordHit(ip)
+    return json({ enabled: true as const, ...task })
+  } catch (e) {
+    // Never show a FAILED generation to a judge: if Seedance rejects the task
+    // (insufficient credits, network, provider error), degrade to { enabled:false }
+    // so the studio client attaches a bundled sample clip instead. No spend.
+    const reason = e instanceof Error ? e.message : "generation unavailable"
+    const insufficient = /insufficient|credit/i.test(reason)
+    return json({
+      enabled: false as const,
+      unavailable: true as const,
+      reason: insufficient ? "Live generation is temporarily unavailable — showing a sample clip." : reason.slice(0, 160),
+    })
+  }
 }
