@@ -252,11 +252,16 @@
   <div class="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 lg:px-8">
     <!-- ── Instrument nav ─────────────────────────────────────────────── -->
     <header class="hud flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-line)] pb-3">
-      <span>TODAY OS · STUDIO / EDL-01</span>
+      <span>TODAY OS · STUDIO / EDL-01 · TOUR 03/04</span>
       <nav class="flex gap-5">
         <a href="/" class="transition-colors hover:text-primary">INDEX</a>
         <a href="/admin" class="transition-colors hover:text-primary">AD OPS</a>
         <a href="/studio/batch" class="text-primary transition-colors hover:text-base-content">BATCH →</a>
+        <a
+          href="https://github.com/joewinke/today-os#readme"
+          class="transition-colors hover:text-primary"
+          rel="external">NEXT: THE THINKING →</a
+        >
       </nav>
     </header>
 
