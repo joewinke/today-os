@@ -304,7 +304,10 @@
       {#if firstGenIndex >= 0}
         <button
           type="button"
-          onclick={() => focusRow(firstGenIndex)}
+          onclick={() => {
+            focusRow(firstGenIndex)
+            generateBroll(segs[firstGenIndex])
+          }}
           class="btn btn-primary btn-sm shrink-0 rounded-none font-mono text-xs tracking-wider uppercase"
         >
           Generate AI B-roll &rarr;
