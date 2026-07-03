@@ -218,13 +218,12 @@ export function listDue(now: Date = new Date()): Account[] {
   )
 }
 
-/** Simulated cron tick: drain every due account. */
+/** Simulated cron tick: drain every due account. Audits run in parallel so the
+ * sweep is bounded by the slowest single account, not the sum (each account's
+ * LLM lane is itself capped and falls back to fixtures — see recommend.ts). */
 export async function runSweep(): Promise<AuditRunResult[]> {
   const due = listDue()
-  const results: AuditRunResult[] = []
-  for (const account of due) {
-    results.push(await runAudit(account.id))
-  }
+  const results = await Promise.all(due.map((account) => runAudit(account.id)))
   logEvent(
     "sweep",
     null,

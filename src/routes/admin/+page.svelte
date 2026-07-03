@@ -36,7 +36,7 @@
     // advance through the stages, but hold on the last until the server returns
     sweepTimer = setInterval(() => {
       if (sweepStage < SWEEP_STAGES.length - 1) sweepStage += 1
-    }, 2400)
+    }, 1700)
   }
   function endSweep() {
     sweeping = false

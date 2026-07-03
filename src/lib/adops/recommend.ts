@@ -25,8 +25,17 @@ import {
 } from "./types"
 import { FIXTURE_LLM_RECS } from "./fixtures"
 
-export const LLM_MODEL = "claude-sonnet-5"
-export const LLM_MAX_TOKENS = 4096
+// Haiku for the recommendation lane: the judgment-call recs are structured JSON
+// grounded in the doctrine, and Haiku returns them in a few seconds — fast enough
+// that the sweep stays live rather than timing out to fixtures.
+export const LLM_MODEL = "claude-haiku-4-5-20251001"
+// A few concise JSON recs fit in ~1.2k tokens; the tight cap keeps generation fast.
+export const LLM_MAX_TOKENS = 1200
+// Per-call ceiling so a slow model never hangs a sweep. Snappy by design: the
+// sweep always completes here — live Haiku when it's quick, realistic fixtures
+// otherwise (the deterministic red-flag findings are computed either way). This
+// bounds the production hang that showed a forever-spinner.
+export const LLM_TIMEOUT_MS = 9_000
 
 // ─── Prompt (pure) ───────────────────────────────────────────────────────────
 
@@ -67,13 +76,26 @@ export function buildRecommendationPrompt(spec: AdSpec, doctrineMd: string): Bui
 
   const user = [
     "=== PROVIDER DOCTRINE ===",
-    doctrineMd,
+    condenseDoctrine(doctrineMd),
     "",
     "=== ACCOUNT SNAPSHOT (AdSpec, YAML) ===",
     specToYaml(spec),
   ].join("\n")
 
   return { system, user }
+}
+
+/**
+ * Trim the doctrine to what the model reasons over — the opening principles and
+ * the RED FLAGS rule grammar — dropping the middle prose. Roughly halves the
+ * prompt so the live call finishes inside the sweep budget instead of timing out.
+ */
+function condenseDoctrine(md: string): string {
+  const flagsIdx = md.search(/^##\s+RED FLAGS/im)
+  if (flagsIdx === -1) return md.slice(0, 3500)
+  const principles = md.slice(0, Math.min(flagsIdx, 2600)).trimEnd()
+  const redFlags = md.slice(flagsIdx)
+  return `${principles}\n\n${redFlags}`
 }
 
 // ─── Defensive parse (pure) ──────────────────────────────────────────────────
@@ -154,12 +176,18 @@ export async function getLlmRecommendations(
     const client = new Anthropic()
     const { system, user } = buildRecommendationPrompt(spec, doctrineMd)
 
-    const response = await client.messages.create({
-      model: LLM_MODEL,
-      max_tokens: LLM_MAX_TOKENS,
-      system,
-      messages: [{ role: "user", content: user }],
-    })
+    // Bound the call: the SDK default timeout is 10 minutes, which would hang the
+    // whole sweep. Fail fast to the fixture lane so a sweep always completes —
+    // live when the model is quick, realistic fixtures when it isn't.
+    const response = await client.messages.create(
+      {
+        model: LLM_MODEL,
+        max_tokens: LLM_MAX_TOKENS,
+        system,
+        messages: [{ role: "user", content: user }],
+      },
+      { timeout: LLM_TIMEOUT_MS, maxRetries: 0 },
+    )
 
     if (response.stop_reason === "refusal") {
       return { recs: fixture, via: "fixture" }
