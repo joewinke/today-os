@@ -109,3 +109,11 @@
     }
   }
 }
+
+/* ambient background videos (Seedance-generated loops): motion is decorative,
+   so reduced-motion users get the plain surface instead */
+@media (prefers-reduced-motion: reduce) {
+  .ambient-video {
+    display: none;
+  }
+}

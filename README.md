@@ -23,7 +23,7 @@ The core loop:
    - **LLM judgment calls** — the same doctrine files ground a model pass for the things rules can't express: structure, bid-strategy maturity, budget reallocation.
 3. **Humans stay in charge.** Every finding lands in an approval inbox as a proposed change with rationale and risk. Autonomy is earned per-account (`propose → approve → auto`), and `auto` **fails closed** — no spend cap, no autonomy. Every decision is audit-logged.
 
-The other two surfaces demonstrate the adjacent bottlenecks: `/studio` shows creative production as data (a plain-text edit-decision list agents can operate on — auto-effects, per-lead personalization from one shoot), and `/` + `/funnel-score` show the landing-page layer (this site *is* the generated artifact; the funnel scorer runs real heuristic teardowns of any URL, live).
+The other two surfaces demonstrate the adjacent bottlenecks: `/studio` shows creative production as data (a plain-text edit-decision list agents can operate on — auto-effects, **real AI b-roll generation per segment via Seedance 2.0**, per-lead personalization from one shoot), and `/` + `/funnel-score` show the landing-page layer (this site *is* the generated artifact — including its video: the ambient loops on the front page were minted by the tool's own generation lane — and the funnel scorer runs real heuristic teardowns of any URL, live).
 
 ## Why did you build THIS one?
 
@@ -49,12 +49,14 @@ In order:
 src/lib/adops/        the engine: AdSpec (zod), red-flag evaluator, LLM lane, store, fixtures, doctrine/*.md, tests
 src/routes/admin/     the command center: overview, approval inbox, account detail, doctrine, audit log
 src/lib/studio/       EDL model (edit-as-data) + fixtures, tests
-src/routes/studio/    the editor demo + batch personalization
+src/routes/studio/    the editor demo + b-roll generation + batch personalization
+src/lib/server/seedance.ts   Seedance 2.0 client (video generation lane)
+src/routes/api/seedance/     generate + poll endpoints (10s poll discipline, graceful no-key fallback)
 src/routes/funnel-score/  live URL teardown tool (deterministic checks, no LLM required)
-src/routes/+page.svelte   the transformed front page (Three.js centerpiece, instrument HUD)
+src/routes/+page.svelte   the transformed front page (Three.js centerpiece, instrument HUD, generated ambient video)
 ```
 
-Stack: SvelteKit 2 · Svelte 5 (runes) · Tailwind 4 · DaisyUI 5 · Three.js · zod · vitest. No database — the demo seeds an in-memory store so every judge interaction runs the real engine against realistic fixtures. Set `ANTHROPIC_API_KEY` to switch the LLM lanes from precomputed fallbacks to live model calls; everything else works without it.
+Stack: SvelteKit 2 · Svelte 5 (runes) · Tailwind 4 · DaisyUI 5 · Three.js · zod · vitest. No database — the demo seeds an in-memory store so every judge interaction runs the real engine against realistic fixtures. Two optional env keys upgrade demo lanes to live ones, and everything degrades gracefully without them: `ANTHROPIC_API_KEY` switches the recommendation/auto-effects lanes from precomputed fallbacks to live model calls; `SEEDANCE_API_KEY` switches studio b-roll from bundled samples to live video generation.
 
 ```bash
 npm install
