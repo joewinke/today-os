@@ -11,6 +11,7 @@
  * see /studio/batch. Everything below is plain data; the engine is edl.ts.
  */
 
+import type { ScriptBeat } from "$lib/adops/theme"
 import { parseEdl, type Lead, type Seg } from "./edl"
 
 // The session as a plain-text EDL — the point of the whole demo. A few takes
@@ -38,6 +39,63 @@ KEEP | cta     | 100.20 | 105.80 | broll  | z=1.00;kb=off;fi=0.00;fo=0.80;spd=1.
 
 export function fixtureSegs(): Seg[] {
   return parseEdl(FIXTURE_EDL)
+}
+
+// ── Demo-theme overlay (scan-reactive script) ────────────────────────────────
+
+/**
+ * Overlay a scanned theme's ad script onto the roofing fixture.
+ *
+ * The segment STRUCTURE is untouched — timings, camera, keep/cut, fx, and
+ * count all stay exactly as the roofing fixture. Only the spoken `text` and the
+ * on-screen `caption` change, and only for KEPT segments whose beat matches a
+ * script beat (case-insensitive). Cut (flubbed) takes keep their raw text so the
+ * keep/cut mechanic still reads. When `script` is empty/undefined the segments
+ * pass through unchanged (default / no-scan → the built-in roofing ad).
+ *
+ * `{{city}}` in a script line is resolved with `opts.city` when provided (the
+ * single-view /studio editor); on /studio/batch it's left in place so the
+ * per-lead token substitution ({{city}} etc.) can resolve it per row.
+ */
+export function applyThemeScript(
+  segs: Seg[],
+  script: ScriptBeat[] | null | undefined,
+  opts: { city?: string } = {},
+): Seg[] {
+  if (!script || script.length === 0) return segs
+  const byBeat = new Map<string, ScriptBeat>()
+  for (const b of script) byBeat.set(b.beat.toLowerCase(), b)
+  const resolve = (s: string) => (opts.city != null ? s.replaceAll("{{city}}", opts.city) : s)
+  return segs.map((s) => {
+    if (!s.keep) return s
+    const b = byBeat.get(s.beat.toLowerCase())
+    if (!b) return s
+    return {
+      ...s,
+      fx: { ...s.fx },
+      text: resolve(b.text),
+      caption: b.caption ? resolve(b.caption) : "",
+    }
+  })
+}
+
+/** Fields the batch lead-row needs from the active demo theme. */
+export interface ThemeLeadSource {
+  business: string
+  vertical: string
+  city: string
+  offer: string
+}
+
+/** Build a batch Lead row from the scanned theme (the preselected variant). */
+export function leadFromTheme(t: ThemeLeadSource): Lead {
+  return {
+    company: t.business,
+    city: t.city,
+    vertical: t.vertical,
+    first_name: "there",
+    offer: t.offer,
+  }
 }
 
 // ── Camera metadata (chart-safe theme tokens only) ───────────────────────────

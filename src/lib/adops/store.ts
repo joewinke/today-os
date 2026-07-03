@@ -21,7 +21,7 @@ import { specToYaml } from "./types"
 import { applyRedFlagChecks, detectedWasteCents } from "./redflags"
 import { getLlmRecommendations, dedupeRecommendations } from "./recommend"
 import { loadDoctrine } from "./doctrine"
-import { ACCOUNT_SEEDS, buildFixtureSpec, FIXTURE_LLM_RECS, type AccountSeed, type Autonomy } from "./fixtures"
+import { ACCOUNT_SEEDS, buildFixtureSpec, type AccountSeed, type Autonomy } from "./fixtures"
 
 export type { Autonomy }
 
@@ -360,14 +360,9 @@ function seed(s: StoreState) {
     message: `seeded ${ACCOUNT_SEEDS.length} accounts from fixtures (in-memory store, no DB)`,
   })
 
-  // Pre-run ONE account (TikTok, autonomy=propose) so the inbox and account
-  // detail have content on first load; Google + Meta stay overdue so the
-  // "Run sweep" demo has accounts to drain. Uses the fixture LLM lane
-  // directly — seeding never makes a network call.
-  const tiktok = s.accounts.get("acct-tiktok")
-  if (tiktok) {
-    // performAudit reads the module-level `state`, which is `s` here — the
-    // seed call happens after g[STASH] is assigned.
-    performAudit(tiktok, FIXTURE_LLM_RECS["acct-tiktok"] ?? [], "fixture", now)
-  }
+  // No pre-run audit: recs are only ever produced by a sweep/audit, which reads
+  // the CURRENT demo theme. Pre-baking recs at module load would freeze them to
+  // the default (home-services) theme and show stale labels after a scan re-themes
+  // the demo. The inbox starts empty; the guided "Run a sweep" step fills it with
+  // recs themed to whatever site the reviewer scanned (or home-services by default).
 }

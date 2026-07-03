@@ -1,4 +1,6 @@
 <script lang="ts">
+  import "$lib/home/home.css"
+  import { untrack } from "svelte"
   import { reveal } from "$lib/actions/reveal"
   import {
     fmtDur,
@@ -7,14 +9,32 @@
     serializeEdl,
     tokenParts,
   } from "$lib/studio/edl"
-  import { CAM_META, LEADS, fixtureSegs } from "$lib/studio/fixtures"
+  import { applyThemeScript, CAM_META, LEADS, fixtureSegs, leadFromTheme } from "$lib/studio/fixtures"
   import EdlPanel from "$lib/studio/EdlPanel.svelte"
+  import type { PageServerData } from "./$types"
 
-  const master = fixtureSegs()
+  let { data }: { data: PageServerData } = $props()
+  const theme = $derived(data.theme)
+
+  function scannedClock(ms: number | null): string {
+    if (!ms) return ""
+    const d = new Date(ms)
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
+  }
+
+  // Themed script (if a scan set one) overlaid on the fixture — {{city}} is left
+  // in place so per-lead token substitution resolves it per row.
+  const master = untrack(() => applyThemeScript(fixtureSegs(), data.theme.script))
   const keptMaster = master.filter((s) => s.keep)
 
+  // When scanned, the scanned business is row 1 (preselected) — the payoff:
+  // a judge who scanned itstoday.org lands on their own personalized variant.
+  const leads = $derived(
+    theme.source === "scanned" ? [leadFromTheme(theme), ...LEADS] : LEADS,
+  )
+
   let selected = $state(0)
-  const lead = $derived(LEADS[selected])
+  const lead = $derived(leads[selected])
   const cut = $derived(personalizeSegs(master, lead))
   const edlText = $derived(serializeEdl(cut))
 </script>
@@ -36,6 +56,13 @@
     </header>
 
     <section>
+      {#if theme.source === "scanned" && theme.domain}
+        <!-- provenance chip: row 1 is the site the reviewer scanned -->
+        <p class="hud mb-3 flex w-fit items-center gap-2 border border-[var(--color-line)] px-3 py-1.5 text-primary">
+          <span class="live-dot"></span>
+          THEMED TO: {theme.domain.toUpperCase()}{scannedClock(theme.scannedAt) ? ` · SCANNED ${scannedClock(theme.scannedAt)}` : ""}
+        </p>
+      {/if}
       <h1 class="statement tracking-in-expand text-4xl text-base-content sm:text-6xl">
         One shoot.<br />N variants.
       </h1>
@@ -49,8 +76,8 @@
       <!-- ── Leads table ─────────────────────────────────────────────── -->
       <section class="border border-[var(--color-line)] bg-base-200" aria-label="Leads">
         <div class="hud flex items-center justify-between border-b border-[var(--color-line)] px-3 py-2">
-          <span>LEADS.CSV — {LEADS.length} ROWS</span>
-          <span class="tabular-nums">VARIANT {selected + 1}/{LEADS.length}</span>
+          <span>LEADS.CSV — {leads.length} ROWS</span>
+          <span class="tabular-nums">VARIANT {selected + 1}/{leads.length}</span>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full border-collapse text-left">
@@ -63,7 +90,7 @@
               </tr>
             </thead>
             <tbody>
-              {#each LEADS as l, i (l.company)}
+              {#each leads as l, i (l.company)}
                 <tr
                   class="lead-row cursor-pointer border-b border-[var(--color-line)] last:border-b-0"
                   class:lead-active={i === selected}
@@ -129,7 +156,7 @@
         </section>
 
         <div class="max-h-[60vh]">
-          <EdlPanel text={edlText} label="EDL — VARIANT {selected + 1}/{LEADS.length}" />
+          <EdlPanel text={edlText} label="EDL — VARIANT {selected + 1}/{leads.length}" />
         </div>
 
         <p class="hud border border-[var(--color-line)] bg-base-200 px-3 py-2 normal-case">

@@ -64,6 +64,8 @@ export interface DemoTheme {
   campaigns: string[]
   /** Ad-group display names (cycled). */
   adGroups: string[]
+  /** Search keyword texts (cycled; linked metric rows are renamed in lockstep). */
+  keywords: string[]
   /** Ad headline lines (cycled onto ad headlines / creative hooks). */
   headlines: string[]
   /** Optional studio ad-script overrides, matched to segments by beat. */
@@ -100,6 +102,16 @@ export const HOME_SERVICES_DEFAULT: DemoTheme = {
     "Solar Savings Estimate",
     "Leaf-Free Gutters",
     "Whole-Home Quote",
+  ],
+  keywords: [
+    "roof repair near me",
+    "free roofing quote",
+    "window replacement cost",
+    "walk in tub installation",
+    "ac repair same day",
+    "solar panels for home",
+    "gutter guard installation",
+    "foundation repair estimate",
   ],
   headlines: [
     "Free Roof Inspection — Same Week",
@@ -147,6 +159,16 @@ export const ITSTODAY_THEME: DemoTheme = {
     "List-Growth Offer",
     "Brand Terms",
     "Offer Rotation A",
+  ],
+  keywords: [
+    "free funnel score",
+    "website conversion audit",
+    "media buying agency",
+    "landing page optimization",
+    "cro consultant",
+    "performance marketing agency",
+    "email list building service",
+    "affiliate marketing offers",
   ],
   headlines: [
     "What's Your Funnel Score? Free",
@@ -230,6 +252,7 @@ export function sanitizeTheme(t: DemoTheme): DemoTheme {
     offer: clamp(t.offer || "a free consultation", CAP.offer),
     campaigns: caps(t.campaigns),
     adGroups: caps(t.adGroups),
+    keywords: caps(t.keywords),
     headlines: caps(t.headlines),
     script: (t.script ?? [])
       .slice(0, 6)
@@ -244,16 +267,27 @@ function pick(list: string[], i: number, fallback: string): string {
 }
 
 /**
- * Return a copy of `spec` with campaign / ad-group / ad-headline names replaced
- * by the theme's, cycling through each list. Numbers, statuses, ids, policy
- * flags, and every metric are left exactly as-is — only display strings change,
- * so red-flag detection and the gate are untouched. Keyword TEXT is deliberately
- * left alone: a keyword's text is its identity (metric rows reference keywords by
- * text), so renaming one would sever that linkage.
+ * Return a copy of `spec` with campaign / ad-group / keyword / ad-headline names
+ * replaced by the theme's, cycling through each list. Numbers, statuses, ids,
+ * policy flags, and every metric VALUE are left exactly as-is — only display
+ * strings change, so red-flag detection and the gate are untouched.
+ *
+ * A keyword's text IS its identity — metric rows reference keywords by text — so
+ * renaming a keyword also renames its matching metric row (level "keyword"),
+ * keeping the linkage intact.
  */
 export function themeSpec(spec: AdSpec, theme: DemoTheme = activeTheme): AdSpec {
   let agN = 0
   let adN = 0
+  // Build the keyword rename map first (stable, positional across the spec), so
+  // both the keyword texts and their linked metric rows rename in lockstep.
+  const kwMap = new Map<string, string>()
+  let kwN = 0
+  for (const c of spec.campaigns)
+    for (const g of c.ad_groups)
+      for (const k of g.keywords)
+        if (!kwMap.has(k.text)) kwMap.set(k.text, pick(theme.keywords, kwN++, k.text))
+
   return {
     ...spec,
     campaigns: spec.campaigns.map((c, ci) => ({
@@ -262,6 +296,7 @@ export function themeSpec(spec: AdSpec, theme: DemoTheme = activeTheme): AdSpec 
       ad_groups: c.ad_groups.map((g) => ({
         ...g,
         name: pick(theme.adGroups, agN++, g.name),
+        keywords: g.keywords.map((k) => ({ ...k, text: kwMap.get(k.text) ?? k.text })),
         ads: g.ads.map((a) => ({
           ...a,
           headlines: a.headlines.length
@@ -270,5 +305,13 @@ export function themeSpec(spec: AdSpec, theme: DemoTheme = activeTheme): AdSpec 
         })),
       })),
     })),
+    metrics: {
+      ...spec.metrics,
+      rows: spec.metrics.rows.map((r) =>
+        r.level === "keyword" && kwMap.has(r.external_id)
+          ? { ...r, external_id: kwMap.get(r.external_id)! }
+          : r,
+      ),
+    },
   }
 }

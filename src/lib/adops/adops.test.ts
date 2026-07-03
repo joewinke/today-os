@@ -289,12 +289,14 @@ describe("store", () => {
     __resetStoreForTests()
   })
 
-  it("seeds 4 accounts and pre-runs the TikTok account", () => {
+  it("seeds 4 accounts with an empty inbox (recs come only from audits, never a pre-run)", () => {
+    // No pre-run audit: pre-baking recs at module load would freeze them to the
+    // default theme and show stale labels after a scan re-themes the demo.
     expect(getAccounts()).toHaveLength(4)
     const tiktok = getAccount("acct-tiktok")!
-    expect(tiktok.last_run_at).not.toBeNull()
-    expect(getRecommendations({ accountId: "acct-tiktok", status: "proposed" }).length).toBeGreaterThan(0)
-    expect(latestSnapshot("acct-tiktok")).toBeTruthy()
+    expect(tiktok.last_run_at).toBeNull()
+    expect(getRecommendations({ status: "proposed" })).toHaveLength(0)
+    expect(latestSnapshot("acct-tiktok")).toBeUndefined()
   })
 
   it("listDue returns the overdue accounts (google + meta + taboola), not the pre-run/future ones", () => {
@@ -348,7 +350,8 @@ describe("store", () => {
     expect(approveRecommendation(blocking[0].id).gate_verdict).toBe("blocked")
   })
 
-  it("approve stamps the gate verdict; TikTok (propose) reads manual_review", () => {
+  it("approve stamps the gate verdict; TikTok (propose) reads manual_review", async () => {
+    await runAudit("acct-tiktok")
     const rec = getRecommendations({ accountId: "acct-tiktok", status: "proposed" })[0]
     const approved = approveRecommendation(rec.id)
     expect(approved.status).toBe("approved")
@@ -374,7 +377,8 @@ describe("store", () => {
     expect(approveRecommendation(high.id).gate_verdict).toBe("manual_review")
   })
 
-  it("dismiss removes a rec from the proposed queue and logs it", () => {
+  it("dismiss removes a rec from the proposed queue and logs it", async () => {
+    await runAudit("acct-tiktok")
     const rec = getRecommendations({ accountId: "acct-tiktok", status: "proposed" })[0]
     dismissRecommendation(rec.id)
     expect(getRecommendations({ accountId: "acct-tiktok", status: "proposed" }).map((r) => r.id)).not.toContain(rec.id)

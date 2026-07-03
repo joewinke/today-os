@@ -40,6 +40,7 @@ export async function buildThemeFromScan(
     '  "offer": string  // its lead-magnet/offer line, <= 8 words',
     '  "campaigns": string[8]  // ad campaign names, each <= 8 words',
     '  "adGroups": string[8]   // ad group names, each <= 6 words',
+    '  "keywords": string[8]   // search keyword phrases someone would type, each <= 5 words',
     '  "headlines": string[8]  // ad headlines, each <= 8 words',
     '  "script": [ { "beat": one of HOOK|PROBLEM|AGITATE|PROOF|OFFER|CTA, "text": string (<= 24 words), "caption": string (<= 5 words) } ] // exactly 6, in that beat order',
     "}",
@@ -95,6 +96,7 @@ function parseThemeJson(text: string): DemoTheme | null {
       offer: String(o.offer ?? ""),
       campaigns: arr(o.campaigns),
       adGroups: arr(o.adGroups),
+      keywords: arr(o.keywords),
       headlines: arr(o.headlines),
       script,
     }

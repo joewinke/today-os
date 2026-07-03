@@ -592,15 +592,21 @@ export function buildCleanSpec(now: string = new Date().toISOString()): AdSpec {
 // structure, bid-strategy maturity, budget reallocation. Written to read like
 // real strategist output grounded in the fixture numbers.
 
+// Fallback LLM recommendations used when the live model lane times out. Written
+// VERTICAL-NEUTRAL — campaigns are referenced by their role (the winner, the
+// zero-conversion campaign, the retargeting pool), never by industry — so they
+// read coherently under any demo theme (home services by default, or a scanned
+// site). The structural fields (type / target / proposed_change) are what dedupe
+// and the tests depend on and are held fixed.
 export const FIXTURE_LLM_RECS: Record<string, RecommendationInput[]> = {
   "acct-google": [
     {
       type: "budget_change",
       target_level: "campaign",
       target_external_id: "c-g1",
-      title: "Reallocate Home Warranty budget into Medicare Advantage",
+      title: "Reallocate the zero-conversion campaign's budget into the proven winner",
       rationale:
-        "Medicare Advantage converts 402 times at ~$31 CPA and is budget-limited, while Home Warranty burned $6,180 with zero conversions. Move the $150/day Home Warranty budget onto the proven winner instead of raising net spend.",
+        "The top campaign converts 402 times at ~$31 CPA and is budget-limited, while another burned $6,180 with zero conversions. Move the $150/day from the loser onto the proven winner instead of raising net spend.",
       proposed_change: { action: "reallocate_budget", from_campaign: "c-g2", to_campaign: "c-g1", amount_cents_daily: 15_000 },
       estimated_impact: "~$4,500/mo shifted from waste to ~$31 CPA volume",
       risk: "medium",
@@ -619,9 +625,9 @@ export const FIXTURE_LLM_RECS: Record<string, RecommendationInput[]> = {
       type: "structure",
       target_level: "campaign",
       target_external_id: "c-g3",
-      title: "Split brand terms out of Auto Insurance before trusting its CPA",
+      title: "Split brand terms out of the brand+generic campaign before trusting its CPA",
       rationale:
-        'Campaign "Auto Insurance — Exact — Brand+Generic" blends brand and generic exact-match terms. Brand clicks flatter the blended CPA and will mislead the tCPA target once volume recovers — separate brand into its own tightly-capped campaign.',
+        "One exact-match campaign blends brand and generic terms. Brand clicks flatter the blended CPA and will mislead the tCPA target once volume recovers — separate brand into its own tightly-capped campaign.",
       proposed_change: { action: "separate_brand_campaign", campaign: "c-g3" },
       risk: "low",
     },
@@ -633,7 +639,7 @@ export const FIXTURE_LLM_RECS: Record<string, RecommendationInput[]> = {
       type: "pause",
       target_level: "campaign",
       target_external_id: "c-m3",
-      title: "Pause the legacy Medicare interest-stack campaign",
+      title: "Pause the legacy interest-stack campaign",
       rationale:
         "Interest-stack targeting is pre-Advantage+ era and this one spent $6,400 with zero conversions. Pause it; broad + creative-as-targeting has replaced this structure.",
       proposed_change: { action: "pause_campaign" },
@@ -643,10 +649,10 @@ export const FIXTURE_LLM_RECS: Record<string, RecommendationInput[]> = {
       type: "structure",
       target_level: "campaign",
       target_external_id: "c-m1",
-      title: "Fold Medicare prospecting into a broad CBO portfolio",
+      title: "Fold the interest-stack prospecting into a broad CBO portfolio",
       rationale:
-        "Doctrine: fewer, bigger ad sets exit learning faster (~50 conv/week needed). Rather than reviving the interest-stack, add a Medicare broad ad set inside the winning Home Services CBO structure where 610 conversions of learning signal already live.",
-      proposed_change: { action: "restructure_campaign", into: "c-m1", add_ad_set: "Medicare — Broad" },
+        "Doctrine: fewer, bigger ad sets exit learning faster (~50 conv/week needed). Rather than reviving the interest-stack, add a broad ad set inside the winning CBO structure where 610 conversions of learning signal already live.",
+      proposed_change: { action: "restructure_campaign", into: "c-m1", add_ad_set: "Broad — Prospecting" },
       risk: "medium",
     },
     {
@@ -666,7 +672,7 @@ export const FIXTURE_LLM_RECS: Record<string, RecommendationInput[]> = {
       type: "bid_change",
       target_level: "campaign",
       target_external_id: "c-t1",
-      title: "Drop Gutter Guards CPC toward the floor while placements are audited",
+      title: "Drop the zero-conversion native campaign's CPC toward the floor while placements are audited",
       rationale:
         "At $0.45 average CPC with zero conversions, this campaign is paying mid-range prices for junk placements. While the site blocklist is rebuilt, cut the fixed CPC to the low end of the suggested range — overbidding just buys the same bot traffic faster.",
       proposed_change: { action: "decrease_bid", current_cpc_cents: 45, proposed_cpc_cents: 28 },
@@ -676,9 +682,9 @@ export const FIXTURE_LLM_RECS: Record<string, RecommendationInput[]> = {
       type: "structure",
       target_level: "campaign",
       target_external_id: "c-t3",
-      title: "Split Walk-in Tubs desktop/mobile and rebuild its creative pool",
+      title: "Split the single-creative campaign desktop/mobile and rebuild its creative pool",
       rationale:
-        "Walk-in Tubs runs one creative on a blended device mix at 0.074% CTR. Native doctrine wants device-split campaigns (independent bids) and 3+ creatives per pool so relative CTR is readable.",
+        "This campaign runs one creative on a blended device mix at 0.074% CTR. Native doctrine wants device-split campaigns (independent bids) and 3+ creatives per pool so relative CTR is readable.",
       proposed_change: { action: "split_by_device", campaign: "c-t3", devices: ["desktop", "mobile"] },
       risk: "low",
     },
@@ -690,7 +696,7 @@ export const FIXTURE_LLM_RECS: Record<string, RecommendationInput[]> = {
       target_external_id: "c-k3",
       title: "Retire the legacy dark-ads campaign into a Spark test cell",
       rationale:
-        "Non-Spark dark ads under-CTR whitelisted creator posts on this account (1.1% vs 0.41%). Fold the insurance vertical into the Spark pipeline as a new creator cell instead of maintaining a separate legacy structure.",
+        "Non-Spark dark ads under-CTR whitelisted creator posts on this account (1.1% vs 0.41%). Fold it into the Spark pipeline as a new creator cell instead of maintaining a separate legacy structure.",
       proposed_change: { action: "migrate_to_spark", campaign: "c-k3" },
       risk: "medium",
     },

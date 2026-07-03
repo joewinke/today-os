@@ -1,4 +1,6 @@
 <script lang="ts">
+  import "$lib/home/home.css"
+  import { untrack } from "svelte"
   import { reveal } from "$lib/actions/reveal"
   import {
     CAMERAS,
@@ -10,11 +12,13 @@
     serializeEdl,
   } from "$lib/studio/edl"
   import {
+    applyThemeScript,
     CAM_META,
     EFFECTS_BANK,
     fixtureSegs,
     type EffectSuggestion,
   } from "$lib/studio/fixtures"
+  import type { PageServerData } from "./$types"
   import {
     brollPrompt,
     sampleFor,
@@ -25,8 +29,20 @@
   import Timeline from "$lib/studio/Timeline.svelte"
   import RoughCutPlayer from "$lib/studio/RoughCutPlayer.svelte"
 
+  let { data }: { data: PageServerData } = $props()
+  const theme = $derived(data.theme)
+
+  function scannedClock(ms: number | null): string {
+    if (!ms) return ""
+    const d = new Date(ms)
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
+  }
+
   // ── The session ─────────────────────────────────────────────────────────
-  let segs = $state(fixtureSegs())
+  // When a scan set a script, the roofing fixture's KEPT lines re-theme to it
+  // (structure — timings/camera/keep/fx — is untouched); {{city}} resolves to
+  // the scanned theme's city. Default (no scan) → the built-in roofing ad.
+  let segs = $state(untrack(() => applyThemeScript(fixtureSegs(), data.theme.script, { city: data.theme.city })))
 
   // Rough-cut animatic preview (watch the whole edit once)
   let previewCutOpen = $state(false)
@@ -286,6 +302,13 @@
 
     <!-- ── Statement + explainer strip ────────────────────────────────── -->
     <section>
+      {#if theme.source === "scanned" && theme.domain}
+        <!-- provenance chip: the studio ad is themed to the scanned site -->
+        <p class="hud mb-3 flex w-fit items-center gap-2 border border-[var(--color-line)] px-3 py-1.5 text-primary">
+          <span class="live-dot"></span>
+          THEMED TO: {theme.domain.toUpperCase()}{scannedClock(theme.scannedAt) ? ` · SCANNED ${scannedClock(theme.scannedAt)}` : ""}
+        </p>
+      {/if}
       <h1 class="statement tracking-in-expand text-4xl text-base-content sm:text-6xl">
         Edit video<br />like a document.
       </h1>
@@ -314,8 +337,9 @@
       aria-label="Try this"
     >
       <p class="hud normal-case" style="letter-spacing: 0.02em">
-        <span class="text-primary">DEMO —</span> a 90-second roofing ad, live and editable. Switch a
-        camera on any row (click a chip or press 1&ndash;4), score it with
+        <span class="text-primary">DEMO —</span>
+        {#if theme.source === "scanned"}a 90-second {theme.business} ad, live and editable.{:else}a 90-second roofing ad, live and editable.{/if}
+        Switch a camera on any row (click a chip or press 1&ndash;4), score it with
         <span class="text-base-content">Auto-Effects</span>, or drop AI b-roll onto a segment:
       </p>
       {#if firstGenIndex >= 0}
@@ -329,6 +353,11 @@
         >
           Add AI B-roll &rarr;
         </button>
+      {/if}
+      {#if theme.source === "scanned" && theme.vertical !== "home services"}
+        <p class="hud text-warning normal-case sm:basis-full">
+          SAMPLE CLIPS ARE THE HOME-IMPROVEMENT EXAMPLE — GENERATE LIVE FOR ON-THEME VIDEO
+        </p>
       {/if}
     </section>
 
