@@ -9,6 +9,8 @@ import { applyRedFlagChecks, detectedWasteCents } from "./redflags"
 import { parseRecommendations, dedupeRecommendations, buildRecommendationPrompt } from "./recommend"
 import { buildFixtureSpec, buildCleanSpec, ACCOUNT_SEEDS, FIXTURE_LLM_RECS } from "./fixtures"
 import { loadDoctrine } from "./doctrine"
+import { withSession } from "$lib/server/session"
+import { getActiveTheme, setScannedTheme } from "./theme"
 import {
   __resetStoreForTests,
   getAccounts,
@@ -393,5 +395,38 @@ describe("store", () => {
     // google c-g2 + meta c-m3 pause flags carry monthly waste; tiktok pre-run adds c-k3
     expect(stats.wasteCentsMonthly).toBeGreaterThan(1_000_000) // > $10k/mo detected
     expect(stats.lastSweepAt).not.toBeNull()
+  })
+})
+
+// ─── Per-visitor session isolation ───────────────────────────────────────────
+
+describe("per-visitor session isolation", () => {
+  it("one visitor's sweep + theme does not bleed into another's store or view", async () => {
+    // Visitor A scans a site (themes their session) and runs a full sweep.
+    await withSession("visitor-a", async () => {
+      setScannedTheme({
+        source: "scanned",
+        domain: "acme-hvac.example",
+        business: "Acme HVAC",
+        vertical: "home services",
+        city: "Phoenix",
+        contactName: "Dana",
+        offer: "Free duct inspection",
+        campaigns: ["Acme — AC Repair"],
+        adGroups: ["AC Repair"],
+        keywords: ["ac repair near me"],
+        headlines: ["Same-day AC repair"],
+        script: [],
+      })
+      await runSweep()
+      expect(getActiveTheme().business).toBe("Acme HVAC")
+      expect(getRecommendations({ status: "proposed" }).length).toBeGreaterThan(0)
+    })
+
+    // Visitor B, arriving fresh, sees neither A's theme nor A's inbox.
+    await withSession("visitor-b", async () => {
+      expect(getActiveTheme().business).not.toBe("Acme HVAC") // home-services default
+      expect(getRecommendations({ status: "proposed" })).toHaveLength(0) // never swept
+    })
   })
 })

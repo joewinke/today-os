@@ -34,8 +34,13 @@
 
   function scannedClock(ms: number | null): string {
     if (!ms) return ""
-    const d = new Date(ms)
-    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
+    // Format in America/New_York (ET) to match the site's Baltimore footer clock.
+    return new Date(ms).toLocaleTimeString("en-US", {
+      timeZone: "America/New_York",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })
   }
 
   // ── The session ─────────────────────────────────────────────────────────

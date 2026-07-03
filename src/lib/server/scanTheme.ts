@@ -37,6 +37,7 @@ export async function buildThemeFromScan(
     '  "business": string  // short brand/label, <= 6 words',
     `  "vertical": one of ${JSON.stringify(VERTICALS)}`,
     '  "city": string  // a plausible city for this business, 1-3 words',
+    '  "contactName": string  // a plausible contact FIRST name at this business (e.g. "Sam"), 1 word',
     '  "offer": string  // its lead-magnet/offer line, <= 8 words',
     '  "campaigns": string[8]  // ad campaign names, each <= 8 words',
     '  "adGroups": string[8]   // ad group names, each <= 6 words',
@@ -93,6 +94,7 @@ function parseThemeJson(text: string): DemoTheme | null {
       // sanitizeTheme enforces the enum; cast is safe because it re-checks.
       vertical: String(o.vertical) as DemoTheme["vertical"],
       city: String(o.city ?? ""),
+      contactName: String(o.contactName ?? ""),
       offer: String(o.offer ?? ""),
       campaigns: arr(o.campaigns),
       adGroups: arr(o.adGroups),

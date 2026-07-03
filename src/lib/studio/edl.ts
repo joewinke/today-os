@@ -196,8 +196,24 @@ export interface Lead {
 
 export const TOKEN_RE = /\{\{(company|city|vertical|first_name|offer)\}\}/g
 
+/**
+ * A nameless lead (first_name === "") can't be greeted, so a leading
+ * "{{first_name}}, " salutation would render as a stray ", slots in…". Drop it
+ * and re-capitalize the sentence ("Slots in {{city}}…"); a mid-sentence token
+ * is just removed. No-op when the lead has a name (the common case).
+ */
+function stripNamelessSalutation(text: string, lead: Lead): string {
+  if (lead.first_name) return text
+  const m = text.match(/^\s*\{\{first_name\}\},\s*/)
+  if (m) {
+    const rest = text.slice(m[0].length)
+    return rest.charAt(0).toUpperCase() + rest.slice(1)
+  }
+  return text.replace(/\{\{first_name\}\}\s*/g, "")
+}
+
 export function substituteTokens(text: string, lead: Lead): string {
-  return text.replace(TOKEN_RE, (_, key: keyof Lead) => lead[key])
+  return stripNamelessSalutation(text, lead).replace(TOKEN_RE, (_, key: keyof Lead) => lead[key])
 }
 
 /** Split text into literal + substituted parts, for highlighted rendering. */
@@ -205,6 +221,7 @@ export function tokenParts(
   text: string,
   lead: Lead,
 ): { text: string; sub: boolean }[] {
+  text = stripNamelessSalutation(text, lead)
   const parts: { text: string; sub: boolean }[] = []
   let last = 0
   for (const m of text.matchAll(TOKEN_RE)) {

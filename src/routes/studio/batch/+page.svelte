@@ -18,8 +18,13 @@
 
   function scannedClock(ms: number | null): string {
     if (!ms) return ""
-    const d = new Date(ms)
-    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
+    // Format in America/New_York (ET) to match the site's Baltimore footer clock.
+    return new Date(ms).toLocaleTimeString("en-US", {
+      timeZone: "America/New_York",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })
   }
 
   // Themed script (if a scan set one) overlaid on the fixture — {{city}} is left
@@ -79,6 +84,12 @@
           <span>LEADS.CSV — {leads.length} ROWS</span>
           <span class="tabular-nums">VARIANT {selected + 1}/{leads.length}</span>
         </div>
+        {#if theme.source === "scanned" && theme.vertical !== "home services"}
+          <!-- clarify the disconnect: only row 1 is the scan; the rest are fixture samples -->
+          <p class="hud border-b border-[var(--color-line)] px-3 py-1.5 text-base-content/50">
+            ROW 1 = YOUR SCAN · REST ARE SAMPLE HOME-SERVICES LEADS
+          </p>
+        {/if}
         <div class="overflow-x-auto">
           <table class="w-full border-collapse text-left">
             <thead>
@@ -125,7 +136,7 @@
         >
           <div class="hud flex flex-wrap items-center justify-between gap-2 border-b border-[var(--color-line)] px-3 py-2">
             <span>
-              VARIANT — <span class="text-primary">{lead.company}</span> · {lead.city} · {lead.first_name}
+              VARIANT — <span class="text-primary">{lead.company}</span> · {lead.city}{lead.first_name ? ` · ${lead.first_name}` : ""}
             </span>
             <span class="tabular-nums">{fmtDur(keptDuration(cut))} PROGRAM</span>
           </div>

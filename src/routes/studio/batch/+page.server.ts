@@ -15,6 +15,7 @@ export const load: PageServerLoad = async () => {
       business: t.business,
       vertical: t.vertical,
       city: t.city,
+      contactName: t.contactName ?? "",
       offer: t.offer,
       script: t.script ?? null,
     },

@@ -24,6 +24,7 @@
  */
 
 import type { AdSpec } from "./types"
+import { currentSession } from "$lib/server/session"
 
 /** Fixed vertical enum — Haiku must pick from this; never free-form. */
 export const VERTICALS = [
@@ -58,6 +59,8 @@ export interface DemoTheme {
   vertical: Vertical
   /** A city for per-lead / studio tokens. */
   city: string
+  /** A plausible contact first name for the batch "lead" (empty = omit). */
+  contactName: string
   /** The lead-magnet / offer line, e.g. "a free funnel score". */
   offer: string
   /** Campaign display names (cycled across a spec's campaigns). */
@@ -82,6 +85,7 @@ export const HOME_SERVICES_DEFAULT: DemoTheme = {
   business: "a home-improvement lead-gen advertiser",
   vertical: "home services",
   city: "Denver",
+  contactName: "",
   offer: "a free in-home estimate",
   campaigns: [
     "Roofing — Storm Damage — Search — US",
@@ -139,6 +143,7 @@ export const ITSTODAY_THEME: DemoTheme = {
   business: "It's Today Media",
   vertical: "performance marketing",
   city: "Baltimore",
+  contactName: "Sam",
   offer: "a free funnel score",
   campaigns: [
     "Lead Gen — Search — Non-Brand — US",
@@ -190,16 +195,19 @@ export const ITSTODAY_THEME: DemoTheme = {
   ],
 }
 
-// ─── Active-theme slot + per-domain cache ─────────────────────────────────────
+// ─── Active theme (per-visitor session) + per-domain cache (shared) ───────────
 
-let activeTheme: DemoTheme = HOME_SERVICES_DEFAULT
+// The ACTIVE theme is per session so one visitor's scan can't re-theme another
+// visitor's view. The domain cache is shared — a domain's theme is the same
+// whoever scanned it, so a repeat scan of a known domain is instant for everyone.
+const sessionThemes = new Map<string, DemoTheme>()
 const domainCache = new Map<string, DemoTheme>([
   ["itstoday.org", ITSTODAY_THEME],
   ["itstoday.media", { ...ITSTODAY_THEME, domain: "itstoday.media" }],
 ])
 
 export function getActiveTheme(): DemoTheme {
-  return activeTheme
+  return sessionThemes.get(currentSession()) ?? HOME_SERVICES_DEFAULT
 }
 
 /** Normalize a URL/host to a bare domain (cache key + provenance chip). */
@@ -217,25 +225,34 @@ export function cachedThemeFor(domain: string): DemoTheme | undefined {
   return domainCache.get(domain)
 }
 
-/** Activate a scanned theme (sanitized) and cache it by domain. */
-export function setScannedTheme(theme: DemoTheme): void {
-  const clean = sanitizeTheme(theme)
-  if (clean.domain) domainCache.set(clean.domain, clean)
-  activeTheme = clean
+/** A theme is only useful (and cacheable) if it actually carries campaign labels. */
+function isComplete(t: DemoTheme | undefined): t is DemoTheme {
+  return !!t && t.campaigns.length > 0
 }
 
-/** Activate a pre-cached theme by domain, if present (instant, no spend). */
+/** Activate a scanned theme (sanitized) for THIS session, and cache it by domain. */
+export function setScannedTheme(theme: DemoTheme): void {
+  const clean = sanitizeTheme(theme)
+  sessionThemes.set(currentSession(), clean)
+  // Only cache complete themes, so a partial/empty result never gets pinned to a
+  // domain and silently suppresses re-theming on a later scan.
+  if (clean.domain && isComplete(clean)) domainCache.set(clean.domain, clean)
+}
+
+/** Activate a pre-cached COMPLETE theme for THIS session (instant, no spend). */
 export function activateCached(domain: string): boolean {
   const t = domainCache.get(domain)
-  if (t) {
-    activeTheme = { ...t, source: "scanned", scannedAt: t.scannedAt ?? Date.now() }
+  if (isComplete(t)) {
+    sessionThemes.set(currentSession(), { ...t, source: "scanned", scannedAt: t.scannedAt ?? Date.now() })
     return true
   }
+  // Incomplete/stale cache entry → treat as a miss so the caller re-builds.
+  if (t) domainCache.delete(domain)
   return false
 }
 
 export function resetTheme(): void {
-  activeTheme = HOME_SERVICES_DEFAULT
+  sessionThemes.delete(currentSession())
 }
 
 /** Length-cap + enum-guard a theme (defense against untrusted scraped input). */
@@ -249,6 +266,7 @@ export function sanitizeTheme(t: DemoTheme): DemoTheme {
     business: clamp(t.business || "your business", CAP.business),
     vertical,
     city: clamp(t.city || "your city", CAP.city),
+    contactName: t.contactName ? clamp(t.contactName, 24) : "",
     offer: clamp(t.offer || "a free consultation", CAP.offer),
     campaigns: caps(t.campaigns),
     adGroups: caps(t.adGroups),
@@ -276,7 +294,7 @@ function pick(list: string[], i: number, fallback: string): string {
  * renaming a keyword also renames its matching metric row (level "keyword"),
  * keeping the linkage intact.
  */
-export function themeSpec(spec: AdSpec, theme: DemoTheme = activeTheme): AdSpec {
+export function themeSpec(spec: AdSpec, theme: DemoTheme = getActiveTheme()): AdSpec {
   let agN = 0
   let adN = 0
   // Build the keyword rename map first (stable, positional across the spec), so

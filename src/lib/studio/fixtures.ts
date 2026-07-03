@@ -56,7 +56,20 @@ export function fixtureSegs(): Seg[] {
  * `{{city}}` in a script line is resolved with `opts.city` when provided (the
  * single-view /studio editor); on /studio/batch it's left in place so the
  * per-lead token substitution ({{city}} etc.) can resolve it per row.
+ *
+ * CUT (flubbed-take) segments keep their built-in roofing text by default, but
+ * that leaks roofing copy into a themed (e.g. insurance) ad's outtakes. So when
+ * a script IS applied, each CUT segment's spoken text is also swapped for a
+ * VERTICAL-NEUTRAL flub line (captions stay blank) — no roofing text survives.
+ * Structure (timings/camera/keep/fx) is untouched.
  */
+const NEUTRAL_FLUBS = [
+  "…sorry, flubbed that line. Going again.",
+  "Ugh — let me take that again.",
+  "One more time, from the top.",
+  "Hold on, restarting that take.",
+]
+
 export function applyThemeScript(
   segs: Seg[],
   script: ScriptBeat[] | null | undefined,
@@ -66,8 +79,15 @@ export function applyThemeScript(
   const byBeat = new Map<string, ScriptBeat>()
   for (const b of script) byBeat.set(b.beat.toLowerCase(), b)
   const resolve = (s: string) => (opts.city != null ? s.replaceAll("{{city}}", opts.city) : s)
+  let cutN = 0
   return segs.map((s) => {
-    if (!s.keep) return s
+    if (!s.keep) {
+      // Theme active → replace the roofing flub with a neutral one so no
+      // roofing text remains in outtakes. Caption stays blank.
+      const flub = NEUTRAL_FLUBS[cutN % NEUTRAL_FLUBS.length]
+      cutN++
+      return { ...s, fx: { ...s.fx }, text: flub, caption: "" }
+    }
     const b = byBeat.get(s.beat.toLowerCase())
     if (!b) return s
     return {
@@ -85,15 +105,21 @@ export interface ThemeLeadSource {
   vertical: string
   city: string
   offer: string
+  /** Themed contact first name; empty when the scan yielded none. */
+  contactName?: string
 }
 
-/** Build a batch Lead row from the scanned theme (the preselected variant). */
+/**
+ * Build a batch Lead row from the scanned theme (the preselected variant).
+ * `first_name` comes from the theme's contactName (e.g. "Sam" for itstoday);
+ * empty when absent so the header/CTA can gracefully omit the salutation.
+ */
 export function leadFromTheme(t: ThemeLeadSource): Lead {
   return {
     company: t.business,
     city: t.city,
     vertical: t.vertical,
-    first_name: "there",
+    first_name: t.contactName ?? "",
     offer: t.offer,
   }
 }

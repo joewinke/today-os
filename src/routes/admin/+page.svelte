@@ -16,8 +16,13 @@
 
   function scannedClock(ms: number | null): string {
     if (!ms) return ""
-    const d = new Date(ms)
-    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
+    // Format in ET to match the site footer clock (Baltimore), not the viewer's TZ.
+    return new Date(ms).toLocaleTimeString("en-US", {
+      timeZone: "America/New_York",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })
   }
 
   function isDue(nextRunAt: string | null): boolean {

@@ -3,7 +3,7 @@
  *
  * Stands in for the production Postgres store: accounts (with cadence +
  * autonomy + spend caps), snapshots (yaml + json), recommendations, and an
- * append-only audit-event log. Seeded from fixtures on first import; state is
+ * append-only audit-event log. Seeded from fixtures on first import; getState() is
  * stashed on globalThis so dev-server HMR doesn't wipe the demo mid-click.
  *
  * The AUTONOMY GATE here mirrors production semantics exactly and FAILS
@@ -22,6 +22,7 @@ import { applyRedFlagChecks, detectedWasteCents } from "./redflags"
 import { getLlmRecommendations, dedupeRecommendations } from "./recommend"
 import { loadDoctrine } from "./doctrine"
 import { ACCOUNT_SEEDS, buildFixtureSpec, type AccountSeed, type Autonomy } from "./fixtures"
+import { currentSession } from "$lib/server/session"
 
 export type { Autonomy }
 
@@ -80,19 +81,30 @@ function createState(): StoreState {
   return { accounts: new Map(), snapshots: [], recommendations: [], events: [], seq: 0 }
 }
 
-const g = globalThis as unknown as { [STASH]?: StoreState }
-const needsSeed = !g[STASH]
-if (!g[STASH]) g[STASH] = createState()
-const state: StoreState = g[STASH]
-// Seed AFTER `state` is bound — performAudit (used by seed) closes over it.
-if (needsSeed) seed(state)
+// Per-visitor stores (keyed by the request session id), stashed on globalThis so
+// dev-server HMR doesn't wipe them mid-click. Each session is seeded lazily on
+// first access, so one reviewer's demo getState() is isolated from another's.
+const g = globalThis as unknown as { [STASH]?: Map<string, StoreState> }
+if (!g[STASH]) g[STASH] = new Map<string, StoreState>()
+const stores = g[STASH]
+
+function getState(): StoreState {
+  const sid = currentSession()
+  let s = stores.get(sid)
+  if (!s) {
+    s = createState()
+    seed(s)
+    stores.set(sid, s)
+  }
+  return s
+}
 
 function nextId(prefix: string): string {
-  return `${prefix}-${(++state.seq).toString(36).padStart(4, "0")}`
+  return `${prefix}-${(++getState().seq).toString(36).padStart(4, "0")}`
 }
 
 function logEvent(kind: AuditEventKind, accountId: string | null, message: string, at = new Date().toISOString()) {
-  state.events.push({ id: nextId("evt"), at, account_id: accountId, kind, message })
+  getState().events.push({ id: nextId("evt"), at, account_id: accountId, kind, message })
 }
 
 // ─── The autonomy gate (fail-closed) ─────────────────────────────────────────
@@ -151,7 +163,7 @@ function performAudit(
     yaml: specToYaml(spec),
     spec,
   }
-  state.snapshots.push(snapshot)
+  getState().snapshots.push(snapshot)
 
   const redFlags = applyRedFlagChecks(spec)
   const redFlagSet = new Set<RecommendationInput>(redFlags)
@@ -159,11 +171,11 @@ function performAudit(
 
   // Supersede the previous run's still-proposed recs so the inbox reflects
   // the latest snapshot (approved/dismissed history is kept).
-  const before = state.recommendations.length
-  state.recommendations = state.recommendations.filter(
+  const before = getState().recommendations.length
+  getState().recommendations = getState().recommendations.filter(
     (r) => !(r.account_id === account.id && r.status === "proposed"),
   )
-  const superseded = before - state.recommendations.length
+  const superseded = before - getState().recommendations.length
 
   const persisted: Recommendation[] = merged.map((input) => ({
     ...input,
@@ -173,7 +185,7 @@ function performAudit(
     source: (redFlagSet.has(input) ? "red_flag" : "llm") as RecSource,
     created_at: nowIso,
   }))
-  state.recommendations.push(...persisted)
+  getState().recommendations.push(...persisted)
 
   account.last_run_at = nowIso
   account.next_run_at = new Date(now.getTime() + account.cadence_hours * 3_600_000).toISOString()
@@ -200,7 +212,7 @@ function performAudit(
 
 /** Run one full audit: snapshot → red flags → llm lane → persist → reschedule. */
 export async function runAudit(accountId: string): Promise<AuditRunResult> {
-  const account = state.accounts.get(accountId)
+  const account = getState().accounts.get(accountId)
   if (!account) throw new Error(`Unknown account: ${accountId}`)
   if (!account.enabled) throw new Error(`Account ${accountId} is disabled`)
 
@@ -213,7 +225,7 @@ export async function runAudit(accountId: string): Promise<AuditRunResult> {
 /** Accounts whose next_run_at is due at `now` (the cron predicate). */
 export function listDue(now: Date = new Date()): Account[] {
   const t = now.getTime()
-  return [...state.accounts.values()].filter(
+  return [...getState().accounts.values()].filter(
     (a) => a.enabled && a.next_run_at != null && new Date(a.next_run_at).getTime() <= t,
   )
 }
@@ -243,20 +255,20 @@ export async function runSweep(): Promise<AuditRunResult[]> {
  */
 export async function rethemeProposed(): Promise<void> {
   const ids = new Set(
-    state.recommendations.filter((r) => r.status === "proposed").map((r) => r.account_id),
+    getState().recommendations.filter((r) => r.status === "proposed").map((r) => r.account_id),
   )
   await Promise.all(
-    [...ids].map((id) => (state.accounts.get(id)?.enabled ? runAudit(id) : Promise.resolve(null))),
+    [...ids].map((id) => (getState().accounts.get(id)?.enabled ? runAudit(id) : Promise.resolve(null))),
   )
 }
 
 // ─── Approve / dismiss ───────────────────────────────────────────────────────
 
 export function approveRecommendation(recId: string): Recommendation {
-  const rec = state.recommendations.find((r) => r.id === recId)
+  const rec = getState().recommendations.find((r) => r.id === recId)
   if (!rec) throw new Error(`Unknown recommendation: ${recId}`)
   if (rec.status !== "proposed") throw new Error(`Recommendation ${recId} is already ${rec.status}`)
-  const account = state.accounts.get(rec.account_id)
+  const account = getState().accounts.get(rec.account_id)
   if (!account) throw new Error(`Unknown account: ${rec.account_id}`)
 
   const gate = evaluateAutoApplyGate(account, rec)
@@ -268,7 +280,7 @@ export function approveRecommendation(recId: string): Recommendation {
 }
 
 export function dismissRecommendation(recId: string): Recommendation {
-  const rec = state.recommendations.find((r) => r.id === recId)
+  const rec = getState().recommendations.find((r) => r.id === recId)
   if (!rec) throw new Error(`Unknown recommendation: ${recId}`)
   if (rec.status !== "proposed") throw new Error(`Recommendation ${recId} is already ${rec.status}`)
   rec.status = "dismissed"
@@ -279,32 +291,32 @@ export function dismissRecommendation(recId: string): Recommendation {
 // ─── Read API ────────────────────────────────────────────────────────────────
 
 export function getAccounts(): Account[] {
-  return [...state.accounts.values()]
+  return [...getState().accounts.values()]
 }
 
 export function getAccount(id: string): Account | undefined {
-  return state.accounts.get(id)
+  return getState().accounts.get(id)
 }
 
 export function getRecommendations(filter: { accountId?: string; status?: Recommendation["status"] } = {}): Recommendation[] {
-  return state.recommendations.filter(
+  return getState().recommendations.filter(
     (r) => (filter.accountId == null || r.account_id === filter.accountId) && (filter.status == null || r.status === filter.status),
   )
 }
 
 export function latestSnapshot(accountId: string): Snapshot | undefined {
-  for (let i = state.snapshots.length - 1; i >= 0; i--) {
-    if (state.snapshots[i].account_id === accountId) return state.snapshots[i]
+  for (let i = getState().snapshots.length - 1; i >= 0; i--) {
+    if (getState().snapshots[i].account_id === accountId) return getState().snapshots[i]
   }
   return undefined
 }
 
 export function getSnapshots(accountId: string): Snapshot[] {
-  return state.snapshots.filter((s) => s.account_id === accountId)
+  return getState().snapshots.filter((s) => s.account_id === accountId)
 }
 
 export function getEvents(accountId?: string): AuditEvent[] {
-  const events = accountId ? state.events.filter((e) => e.account_id === accountId) : state.events
+  const events = accountId ? getState().events.filter((e) => e.account_id === accountId) : getState().events
   return [...events].reverse() // newest first
 }
 
@@ -318,13 +330,13 @@ export interface OverviewStats {
 }
 
 export function getStats(): OverviewStats {
-  const open = state.recommendations.filter((r) => r.status === "proposed" || r.status === "approved")
-  const lastAudit = [...state.events].reverse().find((e) => e.kind === "audit" || e.kind === "sweep")
+  const open = getState().recommendations.filter((r) => r.status === "proposed" || r.status === "approved")
+  const lastAudit = [...getState().events].reverse().find((e) => e.kind === "audit" || e.kind === "sweep")
   return {
-    accounts: state.accounts.size,
+    accounts: getState().accounts.size,
     accountsDue: listDue().length,
-    proposed: state.recommendations.filter((r) => r.status === "proposed").length,
-    approved: state.recommendations.filter((r) => r.status === "approved").length,
+    proposed: getState().recommendations.filter((r) => r.status === "proposed").length,
+    approved: getState().recommendations.filter((r) => r.status === "approved").length,
     wasteCentsMonthly: detectedWasteCents(open),
     lastSweepAt: lastAudit?.at ?? null,
   }
@@ -332,12 +344,13 @@ export function getStats(): OverviewStats {
 
 /** Test hook: reset + reseed the singleton in place. */
 export function __resetStoreForTests(): void {
-  state.accounts = new Map()
-  state.snapshots = []
-  state.recommendations = []
-  state.events = []
-  state.seq = 0
-  seed(state)
+  const s = getState()
+  s.accounts = new Map()
+  s.snapshots = []
+  s.recommendations = []
+  s.events = []
+  s.seq = 0
+  seed(s)
 }
 
 // ─── Seed ────────────────────────────────────────────────────────────────────
