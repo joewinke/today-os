@@ -117,3 +117,76 @@
     display: none;
   }
 }
+
+/* ── findings ticker — continuous marquee of real red-flag findings ── */
+.ticker {
+  display: flex;
+  width: max-content;
+  gap: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ticker {
+    animation: ticker-scroll 42s linear infinite;
+  }
+  @keyframes ticker-scroll {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+}
+/* reduced motion: no scroll — the strip is still readable, just static */
+
+/* ── transformation handoff: the 2018 panel recedes as you scroll past ──
+   driven by a scroll-linked CSS var --recede (0 = full, 1 = gone) set in JS.
+   Transform + opacity only. */
+.recede-old {
+  transform: scale(calc(1 - var(--recede, 0) * 0.05)) translateY(calc(var(--recede, 0) * -1.25rem));
+  opacity: calc(1 - var(--recede, 0) * 0.55);
+  filter: grayscale(calc(var(--recede, 0) * 0.25));
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .recede-old {
+    transform: none;
+    opacity: 1;
+    filter: none;
+  }
+}
+
+/* ── loop-stage activation: dim until IntersectionObserver adds .is-live ── */
+.loop-stage {
+  opacity: 0.32;
+  transform: translateY(6px);
+  transition:
+    opacity 500ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    transform 500ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.loop-stage.is-live {
+  opacity: 1;
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .loop-stage {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ── tour step rows ── */
+.tour-row {
+  transition: background-color 150ms ease;
+}
+
+/* ── filmstrip frame hover — transform only ── */
+.film-frame {
+  transition: transform 160ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .film-frame:hover {
+    transform: translateY(-3px);
+  }
+}

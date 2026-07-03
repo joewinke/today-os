@@ -5,6 +5,10 @@
   import HudChrome from "$lib/home/HudChrome.svelte"
   import HeroScene from "$lib/home/HeroScene.svelte"
 
+  const prefersReduced =
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+
   // Chrome defers autoplay for offscreen videos; nudge ambient loops when
   // they scroll into view (muted, so play() is always permitted).
   function playWhenVisible(node: HTMLVideoElement) {
@@ -17,6 +21,164 @@
     io.observe(node)
     return { destroy: () => io.disconnect() }
   }
+
+  // Scroll-linked recede for the 2018 "before" panel: writes --recede (0→1)
+  // across the element's pass through the viewport. rAF-throttled, passive.
+  function scrollRecede(node: HTMLElement) {
+    if (prefersReduced) return
+    let ticking = false
+    const update = () => {
+      ticking = false
+      const r = node.getBoundingClientRect()
+      const vh = window.innerHeight
+      // Stay fully visible until the panel's top scrolls above 12% of the
+      // viewport, then recede over the next half-screen as it exits upward.
+      const p = Math.min(Math.max((vh * 0.12 - r.top) / (vh * 0.5), 0), 1)
+      node.style.setProperty("--recede", p.toFixed(3))
+    }
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true
+        requestAnimationFrame(update)
+      }
+    }
+    update()
+    window.addEventListener("scroll", onScroll, { passive: true })
+    window.addEventListener("resize", onScroll, { passive: true })
+    return {
+      destroy() {
+        window.removeEventListener("scroll", onScroll)
+        window.removeEventListener("resize", onScroll)
+      },
+    }
+  }
+
+  // Activate an element (loop stage) once when it scrolls into view.
+  function activateOnView(node: HTMLElement) {
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          node.classList.add("is-live")
+          io.disconnect()
+        }
+      },
+      { threshold: 0.5 },
+    )
+    io.observe(node)
+    return { destroy: () => io.disconnect() }
+  }
+
+  // Count a numeral up from 0 → target when it first enters view.
+  function countUp(node: HTMLElement, opts: { to: number; decimals?: number; suffix?: string }) {
+    const { to, decimals = 0, suffix = "" } = opts
+    const render = (v: number) => {
+      node.textContent = v.toFixed(decimals) + suffix
+    }
+    if (prefersReduced) {
+      render(to)
+      return
+    }
+    render(0)
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return
+        io.disconnect()
+        const dur = 1100
+        let start = 0
+        const step = (t: number) => {
+          if (!start) start = t
+          const k = Math.min((t - start) / dur, 1)
+          const eased = 1 - Math.pow(1 - k, 3)
+          render(to * eased)
+          if (k < 1) requestAnimationFrame(step)
+        }
+        requestAnimationFrame(step)
+      },
+      { threshold: 0.6 },
+    )
+    io.observe(node)
+    return { destroy: () => io.disconnect() }
+  }
+
+  function smoothTo(id: string) {
+    document
+      .getElementById(id)
+      ?.scrollIntoView({ behavior: prefersReduced ? "auto" : "smooth", block: "start" })
+  }
+
+  // The guided tour — the rail a first-time visitor follows.
+  const tour = [
+    {
+      n: "01",
+      title: "Run the Scan",
+      body: "Point it at any site. Ten live conversion checks, one score, the fixes ranked. Start with itstoday.org.",
+      href: "/funnel-score",
+      cta: "OPEN THE DIAGNOSTIC",
+      primary: true,
+      external: false,
+    },
+    {
+      n: "02",
+      title: "Open the Console",
+      body: "Run a sweep. Watch agents audit four ad accounts, then approve a change — and watch the gate refuse an unsafe one.",
+      href: "/admin",
+      cta: "ENTER AD OPS",
+      primary: false,
+      external: false,
+    },
+    {
+      n: "03",
+      title: "Enter the Studio",
+      body: "Generate real AI b-roll from a line of script, then personalize the whole ad for every lead in the list.",
+      href: "/studio",
+      cta: "OPEN THE STUDIO",
+      primary: false,
+      external: false,
+    },
+    {
+      n: "04",
+      title: "Read the Thinking",
+      body: "The three questions the contest asks — what it does, why this, what's next — answered in the README.",
+      href: "https://github.com/joewinke/today-os#readme",
+      cta: "READ THE README",
+      primary: false,
+      external: true,
+    },
+  ]
+
+  // The audit loop — activates stage by stage as it scrolls in.
+  const loop = [
+    { n: "01", title: "Connect", body: "Google, Meta, Taboola, TikTok — one login each. API when it's granted, browser agent on day one when it isn't." },
+    { n: "02", title: "Snapshot", body: "Every account normalized into one canonical spec. Diffable YAML, queryable JSON. The single source of truth." },
+    { n: "03", title: "Red Flags + LLM", body: "Deterministic rules a marketer edits in plain markdown, plus a model for the judgment calls. Both grounded in the same doctrine." },
+    { n: "04", title: "Approve", body: "Every change proposed with evidence and risk. Nothing touches a live account until a human says so." },
+    { n: "05", title: "Generate", body: "Fatigued creative routes to the studio. New b-roll and pages minted, personalized, sent back into the funnel." },
+  ]
+
+  // Real findings from the demo fixtures — the ticker copy.
+  const findings = [
+    "PAUSE — $6,180/MO · 21% OF SPEND · 0 CONVERSIONS",
+    "FREQUENCY 4.7 — CREATIVE FATIGUE · REFRESH DUE",
+    "AD GROUP 'MEDICARE-BROAD' — 1 AD · MIN 3 FOR ROTATION",
+    "QUALITY SCORE 3 — LANDING-PAGE MISMATCH",
+    "BUDGET-LIMITED · CONVERTING · RAISE CAP +30%",
+    "TABOOLA — 14 PLACEMENTS · CLICKS · 0 CONV · BLOCK",
+    "DISAPPROVED AD SERVING — POLICY: UNSUPPORTED CLAIM",
+    "tCPA SET PRE-THRESHOLD · 8 CONV < 30 · REVERT TO MAX-CONV",
+  ]
+
+  const stats = [
+    { to: 58, label: "TESTS GREEN", suffix: "" },
+    { to: 12, label: "RED-FLAG RULES", suffix: "" },
+    { to: 4, label: "AD PLATFORMS", suffix: "" },
+    { to: 160, label: "SEC TO GENERATED B-ROLL", suffix: "" },
+  ]
+
+  const samples = [
+    { src: "/video/samples/rooftops.mp4", cap: "AERIAL · ROOFTOPS" },
+    { src: "/video/samples/crew.mp4", cap: "CREW · INSTALL" },
+    { src: "/video/samples/signing.mp4", cap: "CLOSE · SIGN" },
+  ]
 
   const services = [
     {
@@ -77,6 +239,17 @@
         GOOGLE · META · TABOOLA · TIKTOK / PAID TRAFFIC IN, CUSTOMERS OUT. THE FUNNEL IS THE
         PRODUCT.
       </p>
+
+      <div class="pointer-events-auto mt-10 flex flex-wrap items-center gap-4">
+        <button
+          type="button"
+          onclick={() => smoothTo("tour")}
+          class="btn btn-primary btn-lg rounded-none px-8 font-mono text-sm tracking-[0.08em] uppercase"
+        >
+          Start the Tour
+        </button>
+        <span class="hud">4 STOPS · ~2 MIN · EVERYTHING IS LIVE</span>
+      </div>
     </div>
 
     <div
@@ -88,13 +261,149 @@
     </div>
   </section>
 
+  <!-- ===================== THE TOUR ===================== -->
+  <section id="tour" class="border-line border-t px-6 py-24 sm:px-10 lg:px-16 lg:py-32">
+    <div class="mb-12 flex flex-col gap-4" use:reveal>
+      <span class="hud">SEC. 02 / THE TOUR</span>
+      <h2 class="statement text-[clamp(2.2rem,5.5vw,4.6rem)]">You Are Looking<br />at the Product</h2>
+      <p class="text-base-content/70 max-w-2xl text-[15px] leading-relaxed">
+        This isn&rsquo;t a pitch deck. It&rsquo;s a working marketing system, and this page is one
+        of the things it makes. Follow the four stops — each one is a live surface you can actually
+        operate.
+      </p>
+    </div>
+
+    <div class="border-line divide-line divide-y border">
+      {#each tour as step, i (step.n)}
+        <a
+          href={step.href}
+          rel={step.external ? "external" : undefined}
+          class="tour-row hover:bg-base-200 group grid grid-cols-1 gap-3 p-6 sm:grid-cols-[70px_minmax(220px,300px)_1fr_auto] sm:items-baseline sm:gap-x-6 sm:gap-y-3 sm:p-8"
+          use:reveal={{ delay: i * 0.06 }}
+        >
+          <span class="hud {step.primary ? 'text-primary' : ''}">{step.n}</span>
+          <span class="statement text-2xl sm:text-3xl">{step.title}</span>
+          <span class="text-base-content/60 max-w-md text-sm leading-relaxed">
+            {step.body}
+          </span>
+          <span
+            class="hud whitespace-nowrap {step.primary
+              ? 'text-primary'
+              : 'text-base-content/50'} transition-transform group-hover:translate-x-1"
+          >
+            {step.cta} &rarr;
+          </span>
+        </a>
+      {/each}
+    </div>
+  </section>
+
+  <!-- ===================== THE TRANSFORMATION ===================== -->
+  <section class="border-line relative overflow-hidden border-t px-6 py-24 sm:px-10 lg:px-16 lg:py-32">
+    <div class="mb-12 flex flex-col gap-3" use:reveal>
+      <span class="hud">SEC. 03 / THE TRANSFORMATION</span>
+      <h2 class="statement text-[clamp(2.2rem,5.5vw,4.6rem)]">We Didn&rsquo;t Mock<br />It Up.</h2>
+    </div>
+
+    <div class="grid items-center gap-10 lg:grid-cols-[1fr_auto_1fr]">
+      <!-- BEFORE: the real 2018 site, receding as you scroll past -->
+      <figure class="recede-old border-line border" use:scrollRecede>
+        <img
+          src="/img/before-2018.webp"
+          alt="It's Today Media's website as it stood in 2018 — a flat clip-art hero on a white background"
+          class="block h-auto w-full"
+          loading="lazy"
+        />
+        <figcaption class="hud border-line flex items-center justify-between border-t px-4 py-3">
+          <span>FIG. 00 — THE SITE, &copy; 2018</span>
+          <span class="hidden sm:inline">WORDPRESS · CLIP ART</span>
+        </figcaption>
+      </figure>
+
+      <div class="hud hidden text-center lg:block" aria-hidden="true">
+        <div class="statement text-4xl">&rarr;</div>
+      </div>
+
+      <!-- AFTER: you're standing in it -->
+      <div class="flex flex-col gap-5" use:reveal>
+        <span class="hud text-primary">FIG. 01 — THE SITE, NOW · YOU ARE HERE</span>
+        <p class="statement text-[clamp(1.8rem,4vw,3rem)]">You&rsquo;re<br />Standing<br />in It.</p>
+        <p class="text-base-content/70 max-w-md text-[15px] leading-relaxed">
+          Same company, same headline, same Baltimore phone number. Every pixel, every video, every
+          audit on this domain came out of the tool — the same tool that would run your accounts on
+          day one.
+        </p>
+        <button
+          type="button"
+          onclick={() => smoothTo("loop")}
+          class="hud self-start text-primary transition-transform hover:translate-x-1"
+        >
+          SEE HOW THE LOOP WORKS &darr;
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== HOW THE LOOP WORKS ===================== -->
+  <section id="loop" class="border-line border-t px-6 py-24 sm:px-10 lg:px-16 lg:py-32">
+    <div class="mb-12 flex flex-col gap-3" use:reveal>
+      <span class="hud">SEC. 04 / THE LOOP</span>
+      <h2 class="statement text-[clamp(2.2rem,5.5vw,4.6rem)]">One Cadence.<br />No Drift.</h2>
+      <p class="text-base-content/70 max-w-2xl text-[15px] leading-relaxed">
+        Account hygiene doesn&rsquo;t scale with account count. So it runs on a schedule, surfaces
+        the waste, and waits for a human at the gate.
+      </p>
+    </div>
+
+    <ol class="border-line divide-line grid divide-y border md:grid-cols-5 md:divide-x md:divide-y-0">
+      {#each loop as stage (stage.n)}
+        <li class="loop-stage flex flex-col gap-3 p-5 sm:p-6" use:activateOnView>
+          <span class="hud text-primary">{stage.n}</span>
+          <span class="statement text-lg sm:text-xl">{stage.title}</span>
+          <span class="text-base-content/60 text-[13px] leading-relaxed">{stage.body}</span>
+        </li>
+      {/each}
+    </ol>
+
+    <p class="hud mt-6 text-base-content/50">
+      LIVE DEMO FIXTURES — <span class="text-warning">$20,905/MO</span> WASTE SURFACED · 25
+      RECOMMENDATIONS · 1 BLOCKED BY THE SPEND-CAP GATE
+    </p>
+
+    <!-- findings ticker -->
+    <div
+      class="border-line mt-8 overflow-hidden border-y py-3"
+      aria-label="Sample audit findings"
+    >
+      <div class="ticker">
+        {#each [...findings, ...findings] as f, i (i)}
+          <span class="hud whitespace-nowrap px-6">
+            <span class="text-error">◆</span>&nbsp;&nbsp;{f}
+          </span>
+        {/each}
+      </div>
+    </div>
+
+    <!-- count-up stat row -->
+    <div class="border-line divide-line mt-8 grid grid-cols-2 divide-x border sm:grid-cols-4">
+      {#each stats as s (s.label)}
+        <div class="flex flex-col gap-2 p-5 sm:p-6">
+          <span class="statement text-4xl sm:text-5xl" use:countUp={{ to: s.to, suffix: s.suffix }}
+            >{s.to}</span
+          >
+          <span class="hud text-base-content/50">{s.label}</span>
+        </div>
+      {/each}
+    </div>
+  </section>
+
   <!-- ===================== SERVICES ===================== -->
   <section id="work" class="border-line border-t px-6 py-24 sm:px-10 lg:px-16 lg:py-32">
     <div class="mb-14 flex items-end justify-between gap-6" use:reveal>
       <h2 class="statement text-[clamp(2.2rem,5.5vw,4.6rem)]">
         Ways We Help<br />You Scale
       </h2>
-      <span class="hud hidden pb-2 sm:inline">SEC. 02 / CAPABILITIES</span>
+      <span class="hud hidden pb-2 sm:inline">SEC. 05 / CAPABILITIES</span>
     </div>
 
     <div class="grid gap-px md:grid-cols-2">
@@ -122,7 +431,7 @@
   <section class="border-line relative border-t px-6 py-24 sm:px-10 lg:px-16 lg:py-32">
     <span class="crosshair" style="right: 63px; top: -9px;" aria-hidden="true"></span>
     <div class="mb-6" use:reveal>
-      <span class="hud">SEC. 03 / TODAY OS</span>
+      <span class="hud">SEC. 06 / TODAY OS</span>
       <h2 class="statement mt-4 text-[clamp(2.2rem,5.5vw,4.6rem)]">
         The Operating<br />System
       </h2>
@@ -151,10 +460,35 @@
       </figcaption>
     </figure>
 
+    <!-- studio filmstrip: three real AI-generated ad clips -->
+    <div class="mb-16" use:reveal>
+      <p class="hud mb-4">FIG. 04 — AD B-ROLL, MINTED IN THE STUDIO · TAP TO OPEN</p>
+      <div class="grid gap-px sm:grid-cols-3">
+        {#each samples as clip (clip.src)}
+          <a href="/studio" class="film-frame bg-base-100 border-line block border">
+            <video
+              class="ambient-video block aspect-video w-full object-cover"
+              use:playWhenVisible
+              src={clip.src}
+              autoplay
+              muted
+              loop
+              playsinline
+              aria-hidden="true"
+            ></video>
+            <span class="hud flex items-center justify-between px-3 py-2">
+              <span>{clip.cap}</span>
+              <span class="text-base-content/40">SEEDANCE · 5S</span>
+            </span>
+          </a>
+        {/each}
+      </div>
+    </div>
+
     <div class="border-line divide-line divide-y border" use:reveal>
       <a
         href="/admin"
-        class="hover:bg-base-200 group grid grid-cols-[auto_1fr] items-baseline gap-x-6 gap-y-2 p-6 transition-colors sm:grid-cols-[90px_260px_1fr_auto] sm:p-8"
+        class="hover:bg-base-200 group grid grid-cols-1 gap-2 p-6 transition-colors sm:grid-cols-[90px_260px_1fr_auto] sm:items-baseline sm:gap-x-6 sm:p-8"
       >
         <span class="hud">OS/01</span>
         <span class="statement text-xl sm:text-2xl">Ad Ops Console</span>
@@ -166,7 +500,7 @@
       </a>
       <a
         href="/studio"
-        class="hover:bg-base-200 group grid grid-cols-[auto_1fr] items-baseline gap-x-6 gap-y-2 p-6 transition-colors sm:grid-cols-[90px_260px_1fr_auto] sm:p-8"
+        class="hover:bg-base-200 group grid grid-cols-1 gap-2 p-6 transition-colors sm:grid-cols-[90px_260px_1fr_auto] sm:items-baseline sm:gap-x-6 sm:p-8"
       >
         <span class="hud">OS/02</span>
         <span class="statement text-xl sm:text-2xl">Creative Studio</span>
@@ -200,17 +534,26 @@
       >FIG. 02 — AMBIENT MEDIA · GENERATED BY THE SEEDANCE LANE</span
     >
     <div class="relative z-10 flex flex-col items-start gap-10" use:reveal>
-      <span class="hud">SEC. 04 / DIAGNOSTIC</span>
+      <span class="hud">SEC. 07 / DIAGNOSTIC · TOUR STOP 01</span>
       <h2 class="statement text-[clamp(2.6rem,8vw,7.5rem)]">
         What&rsquo;s Your<br />Funnel Score?
       </h2>
       <p class="text-base-content/70 max-w-xl text-[15px] leading-relaxed">
         We&rsquo;ll analyze your website&rsquo;s conversion problems for free. Ten deterministic
-        checks, one score out of 100, and the list of what to fix first. Runs live, right now.
+        checks, one score out of 100, and the list of what to fix first. Runs live, right now — then
+        it hands you to the console that fixes them.
       </p>
-      <a href="/funnel-score" class="btn btn-primary btn-lg rounded-none px-10 font-mono text-sm tracking-[0.08em] uppercase">
-        Run the Scan
-      </a>
+      <div class="flex flex-wrap items-center gap-4">
+        <a
+          href="/funnel-score"
+          class="btn btn-primary btn-lg rounded-none px-10 font-mono text-sm tracking-[0.08em] uppercase"
+        >
+          Run the Scan
+        </a>
+        <a href="/funnel-score?url=itstoday.org" class="hud text-primary transition-transform hover:translate-x-1">
+          OR SCAN ITSTODAY.ORG &rarr;
+        </a>
+      </div>
     </div>
   </section>
 

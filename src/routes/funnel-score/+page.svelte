@@ -1,6 +1,7 @@
 <script lang="ts">
   import "$lib/home/home.css"
   import { enhance } from "$app/forms"
+  import { page } from "$app/state"
   import TerminalNav from "$lib/home/TerminalNav.svelte"
   import HudChrome from "$lib/home/HudChrome.svelte"
   import type { ActionData } from "./$types"
@@ -9,11 +10,19 @@
   let { form }: { form: ActionData } = $props()
 
   let scanning = $state(false)
-  let urlValue = $state("")
+  // Prefill from ?url= (the homepage "scan itstoday.org" deep link) or a prior submit.
+  let urlValue = $state(page.url.searchParams.get("url") ?? "")
+  let formEl = $state<HTMLFormElement | null>(null)
 
   $effect(() => {
     if (form?.url && !urlValue) urlValue = form.url
   })
+
+  // One-click preset: fill the field and submit, so a judge never has to type.
+  function scanPreset(url: string) {
+    urlValue = url
+    formEl?.requestSubmit()
+  }
 
   const report = $derived(form && "report" in form ? form.report : null)
 
@@ -71,6 +80,7 @@
   <!-- ============ THE INSTRUMENT ============ -->
   <form
     method="POST"
+    bind:this={formEl}
     class="border-line max-w-3xl border"
     use:enhance={() => {
       scanning = true
@@ -108,10 +118,23 @@
         <span class="scan-bar bg-primary absolute top-[-1px] left-0 block h-[3px] w-1/4"></span>
       </div>
       <p class="hud border-line border-t px-5 py-3 sm:px-6" role="status">
-        FETCHING TARGET · RUNNING 10 CHECKS · MAX 15S
+        FETCHING · PARSING · SCORING — 10 CHECKS · MAX 15S
       </p>
     {/if}
   </form>
+
+  <!-- one-click presets so no one has to type -->
+  <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+    <span class="hud text-base-content/50">NO URL HANDY?</span>
+    <button
+      type="button"
+      onclick={() => scanPreset("https://www.itstoday.org/")}
+      disabled={scanning}
+      class="hud text-primary transition-transform hover:translate-x-0.5 disabled:opacity-40"
+    >
+      SCAN ITSTODAY.ORG &rarr;
+    </button>
+  </div>
 
   {#if form?.error}
     <div class="border-error/40 mt-8 max-w-3xl border p-5 sm:p-6" role="alert">
@@ -192,13 +215,47 @@
             </p>
           {/if}
 
-          <div class="border-line mt-14 border-t pt-8">
-            <p class="text-base-content/70 mb-5 max-w-lg text-sm leading-relaxed">
-              Want the leaks fixed, not just found? This is what we do all day.
+          <!-- ==== HANDOFF: the score is the diagnosis; the OS is the treatment ==== -->
+          <div class="border-line mt-14 border-t pt-10">
+            <span class="hud text-primary">TOUR STOP 01 COMPLETE · NEXT &rarr; 02</span>
+            <h2 class="statement mt-4 mb-3 text-2xl sm:text-3xl">
+              The score is the diagnosis.<br />The OS is the treatment.
+            </h2>
+            <p class="text-base-content/70 mb-8 max-w-lg text-sm leading-relaxed">
+              A number tells you the funnel leaks. The console finds the same class of problems
+              inside your ad accounts every single day — and proposes the fix, with the evidence,
+              behind a human approval gate.
             </p>
-            <a href="/#contact" class="hud text-base-content underline underline-offset-4">
-              TALK TO IT&rsquo;S TODAY MEDIA →
-            </a>
+            <div class="border-line divide-line divide-y border">
+              <a
+                href="/admin"
+                class="hover:bg-base-200 group grid grid-cols-[auto_1fr_auto] items-baseline gap-x-5 p-5 transition-colors sm:p-6"
+              >
+                <span class="hud text-primary">02</span>
+                <span>
+                  <span class="statement block text-lg sm:text-xl">Open the Console</span>
+                  <span class="text-base-content/60 mt-1 block text-[13px] leading-relaxed">
+                    Run a sweep, watch the audit loop propose fixes like these — and watch the gate
+                    refuse an unsafe one.
+                  </span>
+                </span>
+                <span class="hud transition-transform group-hover:translate-x-1">&rarr;</span>
+              </a>
+              <a
+                href="/studio"
+                class="hover:bg-base-200 group grid grid-cols-[auto_1fr_auto] items-baseline gap-x-5 p-5 transition-colors sm:p-6"
+              >
+                <span class="hud text-base-content/50">03</span>
+                <span>
+                  <span class="statement block text-lg sm:text-xl">Then Generate the Creative</span>
+                  <span class="text-base-content/60 mt-1 block text-[13px] leading-relaxed">
+                    Fresh pages need fresh ads. Mint AI b-roll and personalize per lead in the
+                    studio.
+                  </span>
+                </span>
+                <span class="hud transition-transform group-hover:translate-x-1">&rarr;</span>
+              </a>
+            </div>
           </div>
         </div>
       </div>
