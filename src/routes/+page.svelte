@@ -243,12 +243,12 @@
       <div class="pointer-events-auto mt-10 flex flex-wrap items-center gap-4">
         <button
           type="button"
-          onclick={() => smoothTo("tour")}
+          onclick={() => smoothTo("begin")}
           class="btn btn-primary btn-lg rounded-none px-8 font-mono text-sm tracking-[0.08em] uppercase"
         >
           Start the Tour
         </button>
-        <span class="hud">4 STOPS · ~2 MIN · EVERYTHING IS LIVE</span>
+        <span class="hud">A LIVE DEMO · ~2 MIN · WALK IT YOURSELF</span>
       </div>
     </div>
 
@@ -261,48 +261,16 @@
     </div>
   </section>
 
-  <!-- ===================== THE TOUR ===================== -->
-  <section id="tour" class="border-line border-t px-6 py-24 sm:px-10 lg:px-16 lg:py-32">
-    <div class="mb-12 flex flex-col gap-4" use:reveal>
-      <span class="hud">SEC. 02 / THE TOUR</span>
-      <h2 class="statement text-[clamp(2.2rem,5.5vw,4.6rem)]">You Are Looking<br />at the Product</h2>
-      <p class="text-base-content/70 max-w-2xl text-[15px] leading-relaxed">
-        This isn&rsquo;t a pitch deck. It&rsquo;s a working marketing system, and this page is one
-        of the things it makes. Follow the four stops — each one is a live surface you can actually
-        operate.
-      </p>
-    </div>
-
-    <div class="border-line divide-line divide-y border">
-      {#each tour as step, i (step.n)}
-        <a
-          href={step.href}
-          rel={step.external ? "external" : undefined}
-          class="tour-row hover:bg-base-200 group grid grid-cols-1 gap-3 p-6 sm:grid-cols-[70px_minmax(220px,300px)_1fr_auto] sm:items-baseline sm:gap-x-6 sm:gap-y-3 sm:p-8"
-          use:reveal={{ delay: i * 0.06 }}
-        >
-          <span class="hud {step.primary ? 'text-primary' : ''}">{step.n}</span>
-          <span class="statement text-2xl sm:text-3xl">{step.title}</span>
-          <span class="text-base-content/60 max-w-md text-sm leading-relaxed">
-            {step.body}
-          </span>
-          <span
-            class="hud whitespace-nowrap {step.primary
-              ? 'text-primary'
-              : 'text-base-content/50'} transition-transform group-hover:translate-x-1"
-          >
-            {step.cta} &rarr;
-          </span>
-        </a>
-      {/each}
-    </div>
-  </section>
-
-  <!-- ===================== THE TRANSFORMATION ===================== -->
-  <section class="border-line relative overflow-hidden border-t px-6 py-24 sm:px-10 lg:px-16 lg:py-32">
+  <!-- ===================== THE TRANSFORMATION (the foundation) ===================== -->
+  <section id="begin" class="border-line relative overflow-hidden border-t px-6 py-24 sm:px-10 lg:px-16 lg:py-32">
     <div class="mb-12 flex flex-col gap-3" use:reveal>
-      <span class="hud">SEC. 03 / THE TRANSFORMATION</span>
+      <span class="hud">SEC. 01 / THE FOUNDATION</span>
       <h2 class="statement text-[clamp(2.2rem,5.5vw,4.6rem)]">We Didn&rsquo;t Mock<br />It Up.</h2>
+      <p class="text-base-content/70 max-w-2xl text-[15px] leading-relaxed">
+        This started as a job: transform It&rsquo;s Today Media&rsquo;s website. So we did &mdash;
+        with the tool. What you&rsquo;re scrolling through is the output. The rest of this page is a
+        live walk-through of the system that built it.
+      </p>
     </div>
 
     <div class="grid items-center gap-10 lg:grid-cols-[1fr_auto_1fr]">
@@ -335,19 +303,55 @@
         </p>
         <button
           type="button"
-          onclick={() => smoothTo("loop")}
+          onclick={() => smoothTo("tour")}
           class="hud self-start text-primary transition-transform hover:translate-x-1"
         >
-          SEE HOW THE LOOP WORKS &darr;
+          NOW WALK THE SYSTEM &darr;
         </button>
       </div>
+    </div>
+  </section>
+
+  <!-- ===================== THE TOUR ===================== -->
+  <section id="tour" class="border-line border-t px-6 py-24 sm:px-10 lg:px-16 lg:py-32">
+    <div class="mb-12 flex flex-col gap-4" use:reveal>
+      <span class="hud">SEC. 02 / THE TOUR</span>
+      <h2 class="statement text-[clamp(2.2rem,5.5vw,4.6rem)]">Walk the<br />System</h2>
+      <p class="text-base-content/70 max-w-2xl text-[15px] leading-relaxed">
+        Everything that built this page is live and running. Four stops, in order — each one a real
+        surface you operate yourself, not a slide. About two minutes end to end.
+      </p>
+    </div>
+
+    <div class="border-line divide-line divide-y border">
+      {#each tour as step, i (step.n)}
+        <a
+          href={step.href}
+          rel={step.external ? "external" : undefined}
+          class="tour-row hover:bg-base-200 group grid grid-cols-1 gap-3 p-6 sm:grid-cols-[70px_minmax(220px,300px)_1fr_auto] sm:items-baseline sm:gap-x-6 sm:gap-y-3 sm:p-8"
+          use:reveal={{ delay: i * 0.06 }}
+        >
+          <span class="hud {step.primary ? 'text-primary' : ''}">{step.n}</span>
+          <span class="statement text-2xl sm:text-3xl">{step.title}</span>
+          <span class="text-base-content/60 max-w-md text-sm leading-relaxed">
+            {step.body}
+          </span>
+          <span
+            class="hud whitespace-nowrap {step.primary
+              ? 'text-primary'
+              : 'text-base-content/50'} transition-transform group-hover:translate-x-1"
+          >
+            {step.cta} &rarr;
+          </span>
+        </a>
+      {/each}
     </div>
   </section>
 
   <!-- ===================== HOW THE LOOP WORKS ===================== -->
   <section id="loop" class="border-line border-t px-6 py-24 sm:px-10 lg:px-16 lg:py-32">
     <div class="mb-12 flex flex-col gap-3" use:reveal>
-      <span class="hud">SEC. 04 / THE LOOP</span>
+      <span class="hud">SEC. 03 / THE LOOP</span>
       <h2 class="statement text-[clamp(2.2rem,5.5vw,4.6rem)]">One Cadence.<br />No Drift.</h2>
       <p class="text-base-content/70 max-w-2xl text-[15px] leading-relaxed">
         Account hygiene doesn&rsquo;t scale with account count. So it runs on a schedule, surfaces
@@ -403,7 +407,7 @@
       <h2 class="statement text-[clamp(2.2rem,5.5vw,4.6rem)]">
         Ways We Help<br />You Scale
       </h2>
-      <span class="hud hidden pb-2 sm:inline">SEC. 05 / CAPABILITIES</span>
+      <span class="hud hidden pb-2 sm:inline">SEC. 04 / CAPABILITIES</span>
     </div>
 
     <div class="grid gap-px md:grid-cols-2">
@@ -431,7 +435,7 @@
   <section class="border-line relative border-t px-6 py-24 sm:px-10 lg:px-16 lg:py-32">
     <span class="crosshair" style="right: 63px; top: -9px;" aria-hidden="true"></span>
     <div class="mb-6" use:reveal>
-      <span class="hud">SEC. 06 / TODAY OS</span>
+      <span class="hud">SEC. 05 / TODAY OS</span>
       <h2 class="statement mt-4 text-[clamp(2.2rem,5.5vw,4.6rem)]">
         The Operating<br />System
       </h2>
@@ -534,7 +538,7 @@
       >FIG. 02 — AMBIENT MEDIA · GENERATED BY THE SEEDANCE LANE</span
     >
     <div class="relative z-10 flex flex-col items-start gap-10" use:reveal>
-      <span class="hud">SEC. 07 / DIAGNOSTIC · TOUR STOP 01</span>
+      <span class="hud">SEC. 06 / DIAGNOSTIC · TOUR STOP 01</span>
       <h2 class="statement text-[clamp(2.6rem,8vw,7.5rem)]">
         What&rsquo;s Your<br />Funnel Score?
       </h2>
@@ -552,6 +556,35 @@
         </a>
         <a href="/funnel-score?url=itstoday.org" class="hud text-primary transition-transform hover:translate-x-1">
           OR SCAN ITSTODAY.ORG &rarr;
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== THE CLOSE ===================== -->
+  <section class="border-line border-t px-6 py-28 sm:px-10 lg:px-16 lg:py-40">
+    <div class="flex flex-col gap-6" use:reveal>
+      <span class="hud">SEC. 07 / THE CLOSE</span>
+      <h2 class="statement text-[clamp(2.4rem,7vw,6rem)]">
+        This is a demo.<br />It could be<br />your operation.
+      </h2>
+      <p class="text-base-content/70 max-w-2xl text-[15px] leading-relaxed">
+        Everything you just walked through runs on sample data. Point it at the real accounts and
+        it&rsquo;s a marketing team that never sleeps &mdash; auditing spend, proposing fixes behind
+        your approval, generating the creative and the pages the traffic lands on. The website was
+        the first thing I built you. This is the second. Give me the keys and the README says what
+        comes next.
+      </p>
+      <div class="mt-2 flex flex-wrap items-center gap-5">
+        <a
+          href="https://github.com/joewinke/today-os#readme"
+          rel="external"
+          class="btn btn-primary btn-lg rounded-none px-10 font-mono text-sm tracking-[0.08em] uppercase"
+        >
+          Read the Plan
+        </a>
+        <a href="#begin" class="hud text-base-content/60 hover:text-primary transition-colors">
+          OR WALK THE TOUR AGAIN &uarr;
         </a>
       </div>
     </div>
