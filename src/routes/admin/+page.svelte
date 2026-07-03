@@ -16,6 +16,39 @@
   function isDue(nextRunAt: string | null): boolean {
     return nextRunAt != null && new Date(nextRunAt).getTime() <= Date.now()
   }
+
+  // Narrate the sweep while the server works (~30-60s on the live LLM lane).
+  // These are the real stages of the loop — same five the homepage teaches.
+  const SWEEP_STAGES = [
+    "Connecting to the due accounts",
+    "Snapshotting each into one canonical spec",
+    "Running the deterministic red-flag checks",
+    "Asking the model for the judgment calls",
+    "Writing findings to the approval inbox",
+  ]
+  let sweepStage = $state(-1)
+  let sweepTimer: ReturnType<typeof setInterval> | null = null
+
+  function startSweep() {
+    sweeping = true
+    sweepStage = 0
+    if (sweepTimer) clearInterval(sweepTimer)
+    // advance through the stages, but hold on the last until the server returns
+    sweepTimer = setInterval(() => {
+      if (sweepStage < SWEEP_STAGES.length - 1) sweepStage += 1
+    }, 2400)
+  }
+  function endSweep() {
+    sweeping = false
+    sweepStage = -1
+    if (sweepTimer) {
+      clearInterval(sweepTimer)
+      sweepTimer = null
+    }
+  }
+  $effect(() => () => {
+    if (sweepTimer) clearInterval(sweepTimer)
+  })
 </script>
 
 <div>
@@ -48,42 +81,58 @@
   </div>
 
   <!-- the one primary action -->
-  <div class="bg-base-100 flex flex-col justify-center gap-3 p-5 sm:p-6 lg:min-w-64">
-    <form
-      method="POST"
-      action="?/runSweep"
-      use:enhance={() => {
-        sweeping = true
+  <div class="bg-base-100 flex flex-col justify-center gap-3 p-5 sm:p-6 lg:min-w-72">
+    {#if sweeping}
+      <!-- live narration of the loop while the server audits -->
+      <p class="hud text-primary" role="status">SWEEPING · AUDITING {stats.accountsDue} ACCOUNTS</p>
+      <ol class="flex flex-col gap-1.5">
+        {#each SWEEP_STAGES as stage, i (stage)}
+          <li class="flex items-center gap-2 font-mono text-xs {i < sweepStage ? 'text-base-content/40' : i === sweepStage ? 'text-base-content' : 'text-base-content/25'}">
+            <span class="w-3 shrink-0">
+              {#if i < sweepStage}&check;{:else if i === sweepStage}<span class="loading loading-spinner loading-xs align-middle"></span>{:else}·{/if}
+            </span>
+            {stage}
+          </li>
+        {/each}
+      </ol>
+    {:else if stats.accountsDue > 0}
+      <form method="POST" action="?/runSweep" use:enhance={() => {
+        startSweep()
         return async ({ update }) => {
-          sweeping = false
           await update()
+          endSweep()
         }
-      }}
-    >
-      <button
-        type="submit"
-        class="btn btn-primary btn-lg w-full rounded-none font-mono text-sm tracking-[0.08em] uppercase"
-        disabled={sweeping}
-      >
-        {#if sweeping}<span class="loading loading-spinner loading-xs"></span>{/if}
-        {sweeping ? "Sweeping…" : "Run a Sweep"}
-      </button>
-    </form>
-    <p class="hud text-center">
-      {#if stats.accountsDue > 0}
-        START HERE · {stats.accountsDue} ACCOUNT{stats.accountsDue === 1 ? "" : "S"} DUE
-      {:else}
-        ALL ACCOUNTS SWEPT · SEE INBOX
-      {/if}
-    </p>
+      }}>
+        <button type="submit" class="btn btn-primary btn-lg w-full rounded-none font-mono text-sm tracking-[0.08em] uppercase">
+          Run a Sweep
+        </button>
+      </form>
+      <p class="hud text-center">START HERE · {stats.accountsDue} ACCOUNT{stats.accountsDue === 1 ? "" : "S"} DUE</p>
+    {:else}
+      <!-- swept: the next step is the inbox -->
+      <a href="/admin/inbox" class="btn btn-primary btn-lg w-full rounded-none font-mono text-sm tracking-[0.08em] uppercase">
+        Review {stats.proposed} Finding{stats.proposed === 1 ? "" : "s"} &rarr;
+      </a>
+      <p class="hud text-center">STEP 01 DONE · NOW OPEN THE INBOX</p>
+    {/if}
   </div>
 </div>
 
 {#if form && "action" in form && form.action === "sweep"}
-  <p class="hud mt-3 text-success" role="status">
-    SWEEP COMPLETE — {form.drained} ACCOUNT(S) AUDITED, {form.recommendations} RECOMMENDATIONS PROPOSED.
-    <a href="/admin/inbox" class="underline underline-offset-2 hover:text-base-content">OPEN THE INBOX &rarr;</a>
-  </p>
+  <!-- prominent result: what just happened + the one next step -->
+  <div class="border-success/40 mt-4 flex flex-col gap-4 border p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6" role="status" use:reveal={{ animation: "fade-in" }}>
+    <div class="flex flex-col gap-1">
+      <p class="hud text-success">✓ SWEEP COMPLETE</p>
+      <p class="font-mono text-sm leading-relaxed">
+        Audited <span class="text-base-content font-semibold">{form.drained}</span> account{form.drained === 1 ? "" : "s"} ·
+        surfaced <span class="text-base-content font-semibold">{form.recommendations}</span> finding{form.recommendations === 1 ? "" : "s"},
+        each with the evidence. Nothing has changed on any account &mdash; they&rsquo;re waiting for your call.
+      </p>
+    </div>
+    <a href="/admin/inbox" class="btn btn-primary btn-md shrink-0 rounded-none font-mono text-xs tracking-wider uppercase">
+      Review the Findings &rarr;
+    </a>
+  </div>
 {:else if form && "error" in form && form.error}
   <p class="hud mt-3 text-error" role="alert">{form.error}</p>
 {/if}

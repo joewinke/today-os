@@ -157,3 +157,22 @@
     </div>
   </section>
 {/each}
+
+<!-- tour continuation: the console (stop 02) hands off to the studio (stop 03) -->
+<div class="mt-16 border-t pt-10" style="border-color: var(--color-line)">
+  <span class="hud text-primary">TOUR STOP 02 · THE CONSOLE — DONE · NEXT &rarr; 03</span>
+  <h2 class="statement mt-4 mb-3 text-2xl sm:text-3xl">
+    You&rsquo;ve seen how it finds the money.<br />Now see how it makes the creative.
+  </h2>
+  <p class="text-base-content/70 mb-8 max-w-xl text-sm leading-relaxed">
+    Some of these findings are &ldquo;the creative is fatigued &mdash; make a new one.&rdquo; That
+    hand-off is the studio: edit video like a document, generate AI b-roll from a line of script,
+    and personalize the whole ad for every lead.
+  </p>
+  <a
+    href="/studio"
+    class="btn btn-primary btn-lg rounded-none px-10 font-mono text-sm tracking-[0.08em] uppercase"
+  >
+    Enter the Studio &rarr;
+  </a>
+</div>
