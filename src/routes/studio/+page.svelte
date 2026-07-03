@@ -167,6 +167,20 @@
     }
   }
 
+  // Instant, free: attach a bundled pre-generated sample clip (no API call).
+  function attachSample(s: (typeof segs)[number]) {
+    const idx = s.idx
+    delete brollJobs[idx]
+    broll[idx] = { url: sampleFor(idx), source: "sample" }
+    previewOpen[idx] = true
+  }
+
+  // What a live Seedance generation of this segment would cost (10 credits/sec,
+  // duration clamped 4–8s server-side).
+  function liveCost(s: (typeof segs)[number]): number {
+    return Math.min(Math.max(Math.round(s.end - s.start), 4), 8) * 10
+  }
+
   async function pollBrollJobs() {
     for (const [key, job] of Object.entries(brollJobs)) {
       if ((job.status !== "queued" && job.status !== "generating") || !job.taskId) continue
@@ -299,18 +313,18 @@
       <p class="hud normal-case" style="letter-spacing: 0.02em">
         <span class="text-primary">DEMO —</span> a 90-second roofing ad, live and editable. Switch a
         camera on any row (click a chip or press 1&ndash;4), score it with
-        <span class="text-base-content">Auto-Effects</span>, or generate real AI video:
+        <span class="text-base-content">Auto-Effects</span>, or drop AI b-roll onto a segment:
       </p>
       {#if firstGenIndex >= 0}
         <button
           type="button"
           onclick={() => {
             focusRow(firstGenIndex)
-            generateBroll(segs[firstGenIndex])
+            attachSample(segs[firstGenIndex])
           }}
           class="btn btn-primary btn-sm shrink-0 rounded-none font-mono text-xs tracking-wider uppercase"
         >
-          Generate AI B-roll &rarr;
+          Add AI B-roll &rarr;
         </button>
       {/if}
     </section>
@@ -450,24 +464,47 @@
                 {@const job = brollJobs[s.idx]}
                 {@const att = broll[s.idx]}
                 <div class="mt-2 flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    class="hud cursor-pointer border border-info/60 px-2 py-0.5 text-info transition-colors hover:bg-info hover:text-info-content disabled:cursor-wait disabled:opacity-50"
-                    disabled={!!job && job.status !== "failed"}
-                    onclick={() => generateBroll(s)}
-                  >{job?.status === "failed" ? "RETRY" : att ? "REGENERATE" : "GENERATE B-ROLL"}</button>
+                  {#if job && job.status !== "failed"}
+                    <!-- a live generation is in flight -->
+                    <button
+                      type="button"
+                      class="hud cursor-wait border border-info/40 px-2 py-0.5 text-info/50 opacity-60"
+                      disabled
+                    >GENERATE LIVE</button>
+                  {:else if att || job?.status === "failed"}
+                    <!-- a clip is attached (or a live attempt failed): offer a live (re)generation -->
+                    <button
+                      type="button"
+                      class="hud cursor-pointer border border-info/60 px-2 py-0.5 text-info transition-colors hover:bg-info hover:text-info-content"
+                      title="Real Seedance generation — costs credits"
+                      onclick={() => generateBroll(s)}
+                    >{job?.status === "failed" ? "RETRY LIVE" : "GENERATE A LIVE ONE"} · ~{liveCost(s)} CR</button>
+                  {:else}
+                    <!-- nothing yet: free sample by default, live is the opt-in -->
+                    <button
+                      type="button"
+                      class="hud cursor-pointer border border-info/60 px-2 py-0.5 text-info transition-colors hover:bg-info hover:text-info-content"
+                      onclick={() => attachSample(s)}
+                    >ADD B-ROLL · FREE</button>
+                    <button
+                      type="button"
+                      class="hud cursor-pointer border border-[var(--color-line)] px-2 py-0.5 text-base-content/50 transition-colors hover:border-info hover:text-info"
+                      title="Real Seedance generation — costs credits"
+                      onclick={() => generateBroll(s)}
+                    >OR GENERATE LIVE · ~{liveCost(s)} CR</button>
+                  {/if}
 
                   <span aria-live="polite" class="contents">
                     {#if job?.status === "queued"}
-                      <span class="hud border border-warning/60 px-1.5 py-0.5 text-warning">QUEUED</span>
+                      <span class="hud border border-warning/60 px-1.5 py-0.5 text-warning">QUEUED · LIVE</span>
                     {:else if job?.status === "generating"}
-                      <span class="hud border border-warning/60 px-1.5 py-0.5 text-warning tabular-nums">GENERATING · {elapsedSecs(job)}s</span>
+                      <span class="hud border border-warning/60 px-1.5 py-0.5 text-warning tabular-nums">GENERATING LIVE · {elapsedSecs(job)}s</span>
                     {:else if job?.status === "failed"}
                       <span class="hud border border-error/60 px-1.5 py-0.5 text-error normal-case">FAILED — {job.failedReason}</span>
                     {:else if att?.source === "sample"}
-                      <span class="hud border border-info/60 px-1.5 py-0.5 text-info normal-case">SAMPLE — set SEEDANCE_API_KEY for live generation</span>
+                      <span class="hud border border-info/60 px-1.5 py-0.5 text-info normal-case">SAMPLE · PRE-GENERATED, FREE</span>
                     {:else if att?.source === "seedance"}
-                      <span class="hud border border-success/60 px-1.5 py-0.5 text-success">READY</span>
+                      <span class="hud border border-success/60 px-1.5 py-0.5 text-success">LIVE · GENERATED JUST NOW</span>
                     {/if}
                   </span>
 
