@@ -18,32 +18,67 @@
   }
 </script>
 
-<div class="flex flex-wrap items-end justify-between gap-4">
-  <div>
-    <p class="hud mb-2">COMMAND CENTER</p>
-    <h1 class="statement text-4xl sm:text-5xl">Ad Ops</h1>
+<div>
+  <p class="hud mb-2">COMMAND CENTER</p>
+  <h1 class="statement text-4xl sm:text-5xl">Ad Ops</h1>
+</div>
+
+<!-- ORIENTATION: what this is + the one path to follow (a reviewer lands here cold) -->
+<div class="mt-8 grid gap-px border lg:grid-cols-[1fr_auto]" style="border-color: var(--color-line); background: var(--color-line)">
+  <div class="bg-base-100 p-5 sm:p-6">
+    <p class="hud text-primary mb-3">DEMO · HOW THIS WORKS</p>
+    <p class="text-base-content/80 max-w-2xl text-sm leading-relaxed">
+      Four sample ad accounts &mdash; Google, Meta, Taboola, TikTok &mdash; seeded with realistic
+      data and deliberate problems. <span class="text-base-content">No real spend.</span> In
+      production these are your live accounts, audited on a schedule. Drive the loop in three steps:
+    </p>
+    <ol class="mt-5 grid gap-4 sm:grid-cols-3">
+      {#each [["01", "Run a sweep", `audits the ${stats.accountsDue} account${stats.accountsDue === 1 ? "" : "s"} that are due, all at once`], ["02", "Open the inbox", "read each finding with its evidence and dollar impact"], ["03", "Approve one", "watch the spend-cap gate refuse an unsafe auto-apply"]] as [n, title, sub] (n)}
+        <li class="flex flex-col gap-1">
+          <span class="hud text-primary">{n}</span>
+          <span class="font-mono text-sm font-semibold">{title}</span>
+          <span class="text-base-content/55 text-xs leading-relaxed">{sub}</span>
+        </li>
+      {/each}
+    </ol>
   </div>
-  <form
-    method="POST"
-    action="?/runSweep"
-    use:enhance={() => {
-      sweeping = true
-      return async ({ update }) => {
-        sweeping = false
-        await update()
-      }
-    }}
-  >
-    <button type="submit" class="btn btn-primary btn-sm font-mono uppercase tracking-wider" disabled={sweeping}>
-      {#if sweeping}<span class="loading loading-spinner loading-xs"></span>{/if}
-      Run sweep
-    </button>
-  </form>
+
+  <!-- the one primary action -->
+  <div class="bg-base-100 flex flex-col justify-center gap-3 p-5 sm:p-6 lg:min-w-64">
+    <form
+      method="POST"
+      action="?/runSweep"
+      use:enhance={() => {
+        sweeping = true
+        return async ({ update }) => {
+          sweeping = false
+          await update()
+        }
+      }}
+    >
+      <button
+        type="submit"
+        class="btn btn-primary btn-lg w-full rounded-none font-mono text-sm tracking-[0.08em] uppercase"
+        disabled={sweeping}
+      >
+        {#if sweeping}<span class="loading loading-spinner loading-xs"></span>{/if}
+        {sweeping ? "Sweeping…" : "Run a Sweep"}
+      </button>
+    </form>
+    <p class="hud text-center">
+      {#if stats.accountsDue > 0}
+        START HERE · {stats.accountsDue} ACCOUNT{stats.accountsDue === 1 ? "" : "S"} DUE
+      {:else}
+        ALL ACCOUNTS SWEPT · SEE INBOX
+      {/if}
+    </p>
+  </div>
 </div>
 
 {#if form && "action" in form && form.action === "sweep"}
   <p class="hud mt-3 text-success" role="status">
-    SWEEP COMPLETE — {form.drained} ACCOUNT(S) DRAINED, {form.recommendations} RECOMMENDATIONS PROPOSED
+    SWEEP COMPLETE — {form.drained} ACCOUNT(S) AUDITED, {form.recommendations} RECOMMENDATIONS PROPOSED.
+    <a href="/admin/inbox" class="underline underline-offset-2 hover:text-base-content">OPEN THE INBOX &rarr;</a>
   </p>
 {:else if form && "error" in form && form.error}
   <p class="hud mt-3 text-error" role="alert">{form.error}</p>
@@ -63,7 +98,12 @@
 </div>
 
 <!-- Accounts grid -->
-<p class="hud mt-10 mb-3" id="accounts">ACCOUNTS · {stats.accountsDue} DUE</p>
+<div class="mt-10 mb-3 flex flex-wrap items-baseline gap-x-3" id="accounts">
+  <p class="hud">ACCOUNTS · {stats.accountsDue} DUE</p>
+  <p class="hud text-base-content/40" style="text-transform: none; letter-spacing: 0.02em">
+    — or audit one account at a time below
+  </p>
+</div>
 <div class="grid gap-px border sm:grid-cols-2" style="border-color: var(--color-line); background: var(--color-line)">
   {#each data.accounts as account, i (account.id)}
     <div class="bg-base-100 p-5" use:reveal={{ animation: "fade-in", delay: i * 0.05 }}>
@@ -120,9 +160,10 @@
             type="submit"
             class="btn btn-outline btn-xs font-mono uppercase tracking-wider"
             disabled={auditing !== null}
+            title="Audit only this account"
           >
             {#if auditing === account.id}<span class="loading loading-spinner loading-xs"></span>{/if}
-            Run audit now
+            Audit this account
           </button>
         </form>
 
@@ -142,7 +183,8 @@
   {/each}
 </div>
 
-<p class="hud mt-6" style="text-transform: none; letter-spacing: 0.02em">
-  Run sweep = one simulated cron tick: every account whose next_run_at has passed is audited
+<p class="hud mt-8" style="text-transform: none; letter-spacing: 0.02em">
+  A sweep is one simulated cron tick: every account whose schedule is due gets audited
   (snapshot &rarr; deterministic red flags &rarr; LLM lane &rarr; approval inbox), then rescheduled by its cadence.
+  On a live deployment this runs unattended; here you trigger it so you can watch it work.
 </p>
