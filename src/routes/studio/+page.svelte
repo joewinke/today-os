@@ -32,6 +32,8 @@
   const raw = $derived(rawDuration(segs))
   const cuts = $derived(segs.filter((s) => !s.keep).length)
   const shares = $derived(camShares(segs))
+  // First generated-source segment — where "Generate AI b-roll" lives.
+  const firstGenIndex = $derived(segs.findIndex((s) => s.cam === "gen"))
 
   // ── Keyboard: 1-4 camera, K keep, X cut — on the focused row only ───────
   function rowKeydown(e: KeyboardEvent, s: (typeof segs)[number]) {
@@ -287,6 +289,27 @@
           <p class="hud mt-1 normal-case">{sub}</p>
         </div>
       {/each}
+    </section>
+
+    <!-- ── Try-this orientation: surface the live + AI actions ────────────── -->
+    <section
+      class="flex flex-col gap-3 border border-[var(--color-line)] p-4 sm:flex-row sm:items-center sm:justify-between"
+      aria-label="Try this"
+    >
+      <p class="hud normal-case" style="letter-spacing: 0.02em">
+        <span class="text-primary">DEMO —</span> a 90-second roofing ad, live and editable. Switch a
+        camera on any row (click a chip or press 1&ndash;4), score it with
+        <span class="text-base-content">Auto-Effects</span>, or generate real AI video:
+      </p>
+      {#if firstGenIndex >= 0}
+        <button
+          type="button"
+          onclick={() => focusRow(firstGenIndex)}
+          class="btn btn-primary btn-sm shrink-0 rounded-none font-mono text-xs tracking-wider uppercase"
+        >
+          Generate AI B-roll &rarr;
+        </button>
+      {/if}
     </section>
 
     <!-- ── Timeline strip ─────────────────────────────────────────────── -->
