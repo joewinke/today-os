@@ -1,0 +1,474 @@
+/**
+ * JST Interaction Transitions — state/micro-interaction layer
+ * ----------------------------------------------------------------------------
+ * Adapted from the transitions.dev catalog (https://transitions.dev,
+ * Jakub Antalik — agent skill `npx skills add Jakubantalik/transitions.dev`).
+ *
+ * This file is the SIBLING of animista.css. The two cover different jobs:
+ *   - animista.css  → ENTRANCE / scroll-reveal animations (fade-in-bottom,
+ *                     tracking-in-expand, scale-in-center) paired with use:reveal.
+ *   - transitions.css → STATE / interaction transitions: a modal scaling open,
+ *                     an error field shaking, a button label swapping, a badge
+ *                     popping in, an icon crossfading. Driven by class/attribute
+ *                     toggles from component state, NOT by scroll.
+ *
+ * Usage: import once in the root +layout.svelte, after app.css and animista.css:
+ *   import "$lib/transitions.css"
+ * Then add the `t-*` class (and toggle the documented state class/attribute)
+ * on the element whose state changes.
+ *
+ * JST DISCIPLINE (Design Tokens base):
+ *   - These snippets animate ONLY transform / opacity / filter — never layout
+ *     props (width/height/padding/margin). The catalog's "card-resize" (width/
+ *     height tween) and "shimmer-text" (hex literals) are deliberately EXCLUDED;
+ *     see docs/transitions-dev-analysis.md for the compliant rewrites.
+ *   - This layer sets NO colors. Color (error border, success green, badge fill)
+ *     stays in the component via DaisyUI tokens — so theming is never broken here.
+ *   - Every block carries a prefers-reduced-motion guard.
+ *
+ * Tuning lives in the :root block below (durations + eases, semantic names).
+ */
+
+:root {
+  /* Modal open / close */
+  --t-modal-open-dur: 250ms;
+  --t-modal-close-dur: 150ms;
+  --t-modal-scale: 0.96;
+  --t-modal-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Menu / dropdown (origin-aware) */
+  --t-dropdown-open-dur: 250ms;
+  --t-dropdown-close-dur: 150ms;
+  --t-dropdown-pre-scale: 0.97;
+  --t-dropdown-closing-scale: 0.99;
+  --t-dropdown-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Panel reveal (detail panel sliding into a container) */
+  --t-panel-open-dur: 400ms;
+  --t-panel-close-dur: 350ms;
+  --t-panel-translate-y: 24px;
+  --t-panel-blur: 2px;
+  --t-panel-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Icon swap */
+  --t-icon-swap-dur: 250ms;
+  --t-icon-swap-blur: 2px;
+  --t-icon-swap-start-scale: 0.25;
+  --t-icon-swap-ease: ease-in-out;
+
+  /* Text state swap (e.g. button label Save → Saving → Saved) */
+  --t-text-swap-dur: 150ms;
+  --t-text-swap-translate-y: 4px;
+  --t-text-swap-blur: 2px;
+  --t-text-swap-ease: ease-in-out;
+
+  /* Notification badge */
+  --t-badge-slide-dur: 260ms;
+  --t-badge-pop-dur: 500ms;
+  --t-badge-pop-close-dur: 180ms;
+  --t-badge-blur: 2px;
+  --t-badge-offset-x: -8px;
+  --t-badge-offset-y: 12px;
+  --t-badge-slide-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --t-badge-pop-ease: cubic-bezier(0.34, 1.36, 0.64, 1);
+  --t-badge-close-ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Number / digit pop-in */
+  --t-digit-dur: 500ms;
+  --t-digit-distance: 8px;
+  --t-digit-stagger: 70ms;
+  --t-digit-blur: 2px;
+  --t-digit-ease: cubic-bezier(0.34, 1.45, 0.64, 1);
+
+  /* Error state shake */
+  --t-shake-distance: 6px;
+  --t-shake-overshoot: 4px;
+  --t-shake-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Avatar group hover */
+  --t-avatar-dur: 320ms;
+  --t-avatar-ease: cubic-bezier(0.34, 3.85, 0.64, 1);
+
+  /* Tabs sliding pill */
+  --t-tabs-dur: 250ms;
+  --t-tabs-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ----------------------------------------------------------------------------
+ * Modal open / close — scale + fade. Toggle `.is-open` / `.is-closing`.
+ * ---------------------------------------------------------------------------- */
+.t-modal {
+  transform-origin: center;
+  transform: scale(var(--t-modal-scale));
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--t-modal-open-dur) var(--t-modal-ease),
+    opacity var(--t-modal-open-dur) var(--t-modal-ease);
+  will-change: transform, opacity;
+}
+.t-modal.is-open {
+  transform: scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+.t-modal.is-closing {
+  transform: scale(var(--t-modal-scale));
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--t-modal-close-dur) var(--t-modal-ease),
+    opacity var(--t-modal-close-dur) var(--t-modal-ease);
+}
+
+/* ----------------------------------------------------------------------------
+ * Menu / dropdown — origin-aware scale + fade. Set data-origin to anchor the
+ * scale at the trigger corner. Toggle `.is-open` / `.is-closing`.
+ * ---------------------------------------------------------------------------- */
+.t-dropdown {
+  transform-origin: top left;
+  transform: scale(var(--t-dropdown-pre-scale));
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--t-dropdown-open-dur) var(--t-dropdown-ease),
+    opacity var(--t-dropdown-open-dur) var(--t-dropdown-ease);
+  will-change: transform, opacity;
+}
+.t-dropdown[data-origin="top-right"] {
+  transform-origin: top right;
+}
+.t-dropdown[data-origin="top-center"] {
+  transform-origin: top center;
+}
+.t-dropdown[data-origin="bottom-left"] {
+  transform-origin: bottom left;
+}
+.t-dropdown[data-origin="bottom-center"] {
+  transform-origin: bottom center;
+}
+.t-dropdown[data-origin="bottom-right"] {
+  transform-origin: bottom right;
+}
+.t-dropdown.is-open {
+  transform: scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+.t-dropdown.is-closing {
+  transform: scale(var(--t-dropdown-closing-scale));
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--t-dropdown-close-dur) var(--t-dropdown-ease),
+    opacity var(--t-dropdown-close-dur) var(--t-dropdown-ease);
+}
+
+/* ----------------------------------------------------------------------------
+ * Panel reveal — translateY + fade + cross-blur. Toggle data-open.
+ * Wrap in an overflow:hidden container if you want the closed state clipped.
+ * ---------------------------------------------------------------------------- */
+.t-panel-slide {
+  transform: translateY(var(--t-panel-translate-y));
+  opacity: 0;
+  filter: blur(var(--t-panel-blur));
+  pointer-events: none;
+  transition:
+    transform var(--t-panel-close-dur) var(--t-panel-ease),
+    opacity var(--t-panel-close-dur) var(--t-panel-ease),
+    filter var(--t-panel-close-dur) var(--t-panel-ease);
+  will-change: transform, opacity, filter;
+}
+.t-panel-slide[data-open="true"] {
+  transform: translateY(0);
+  opacity: 1;
+  filter: blur(0);
+  pointer-events: auto;
+  transition:
+    transform var(--t-panel-open-dur) var(--t-panel-ease),
+    opacity var(--t-panel-open-dur) var(--t-panel-ease),
+    filter var(--t-panel-open-dur) var(--t-panel-ease);
+}
+
+/* ----------------------------------------------------------------------------
+ * Icon swap — scale + blur crossfade between two stacked icons.
+ * Markup: <span class="t-icon-swap" data-state="a">
+ *           <Icon class="t-icon" data-icon="a" /><Icon class="t-icon" data-icon="b" />
+ *         </span>  — toggle data-state between "a" and "b".
+ * ---------------------------------------------------------------------------- */
+.t-icon-swap {
+  position: relative;
+  display: inline-grid;
+}
+.t-icon-swap .t-icon {
+  grid-area: 1 / 1;
+  transition:
+    opacity var(--t-icon-swap-dur) var(--t-icon-swap-ease),
+    filter var(--t-icon-swap-dur) var(--t-icon-swap-ease),
+    transform var(--t-icon-swap-dur) var(--t-icon-swap-ease);
+  will-change: opacity, filter, transform;
+}
+.t-icon-swap[data-state="a"] .t-icon[data-icon="a"],
+.t-icon-swap[data-state="b"] .t-icon[data-icon="b"] {
+  opacity: 1;
+  filter: blur(0);
+  transform: scale(1);
+}
+.t-icon-swap[data-state="a"] .t-icon[data-icon="b"],
+.t-icon-swap[data-state="b"] .t-icon[data-icon="a"] {
+  opacity: 0;
+  filter: blur(var(--t-icon-swap-blur));
+  transform: scale(var(--t-icon-swap-start-scale));
+}
+
+/* ----------------------------------------------------------------------------
+ * Text state swap — translate + blur fade. For a label that changes
+ * ("Save" → "Saving…" → "Saved"). Add `.is-exit` to fade the old word up/out;
+ * mount the new word with `.is-enter-start`, then remove it next frame.
+ * ---------------------------------------------------------------------------- */
+.t-text-swap {
+  display: inline-block;
+  transform: translateY(0);
+  filter: blur(0);
+  opacity: 1;
+  transition:
+    transform var(--t-text-swap-dur) var(--t-text-swap-ease),
+    filter var(--t-text-swap-dur) var(--t-text-swap-ease),
+    opacity var(--t-text-swap-dur) var(--t-text-swap-ease);
+  will-change: transform, filter, opacity;
+}
+.t-text-swap.is-exit {
+  transform: translateY(calc(var(--t-text-swap-translate-y) * -1));
+  filter: blur(var(--t-text-swap-blur));
+  opacity: 0;
+}
+.t-text-swap.is-enter-start {
+  transform: translateY(var(--t-text-swap-translate-y));
+  filter: blur(var(--t-text-swap-blur));
+  opacity: 0;
+  transition: none;
+}
+
+/* ----------------------------------------------------------------------------
+ * Notification badge — diagonal slide + spring pop-in. Toggle data-open on the
+ * absolutely-positioned `.t-badge` wrapper; put the colored dot inside as
+ * `.t-badge-dot` (give it its own bg-* token).
+ * ---------------------------------------------------------------------------- */
+@keyframes t-badge-slide-in {
+  from {
+    transform: translate(var(--t-badge-offset-x), var(--t-badge-offset-y));
+  }
+  to {
+    transform: translate(0, 0);
+  }
+}
+.t-badge {
+  position: absolute;
+  pointer-events: none;
+  will-change: transform;
+}
+.t-badge[data-open="true"] {
+  animation: t-badge-slide-in var(--t-badge-slide-dur) var(--t-badge-slide-ease);
+}
+.t-badge-dot {
+  display: block;
+  transform-origin: center;
+  transform: scale(1);
+  opacity: 1;
+  filter: blur(0);
+  transition:
+    transform var(--t-badge-pop-dur) var(--t-badge-pop-ease),
+    opacity var(--t-badge-pop-dur) var(--t-badge-pop-ease),
+    filter var(--t-badge-pop-dur) var(--t-badge-pop-ease);
+  will-change: transform, opacity, filter;
+}
+.t-badge[data-open="false"] .t-badge-dot {
+  transform: scale(0);
+  opacity: 0;
+  filter: blur(var(--t-badge-blur));
+  transition:
+    transform var(--t-badge-pop-close-dur) var(--t-badge-close-ease),
+    opacity var(--t-badge-pop-close-dur) var(--t-badge-close-ease),
+    filter var(--t-badge-pop-close-dur) var(--t-badge-close-ease);
+}
+
+/* ----------------------------------------------------------------------------
+ * Number pop-in — per-digit flip with blur + stagger. Wrap digits as
+ * <span class="t-digit-group"><span class="t-digit">…</span></span> and add
+ * `.is-animating` when the value changes; data-stagger="1"/"2" delays later digits.
+ * ---------------------------------------------------------------------------- */
+@keyframes t-digit-pop-in {
+  0% {
+    transform: translateY(var(--t-digit-distance));
+    opacity: 0;
+    filter: blur(var(--t-digit-blur));
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+.t-digit-group {
+  display: inline-flex;
+  align-items: baseline;
+}
+.t-digit {
+  display: inline-block;
+  will-change: transform, opacity, filter;
+}
+.t-digit-group.is-animating .t-digit {
+  animation: t-digit-pop-in var(--t-digit-dur) var(--t-digit-ease) both;
+}
+.t-digit-group.is-animating .t-digit[data-stagger="1"] {
+  animation-delay: var(--t-digit-stagger);
+}
+.t-digit-group.is-animating .t-digit[data-stagger="2"] {
+  animation-delay: calc(var(--t-digit-stagger) * 2);
+}
+
+/* ----------------------------------------------------------------------------
+ * Error state shake — percussive left/right shake with overshoot. Add
+ * `.t-input-shake` to the field that should shake; restart by removing the
+ * class, forcing a reflow, then re-adding (see analysis doc for the helper).
+ * Border/message COLOR stays in the component (border-error, text-error).
+ * ---------------------------------------------------------------------------- */
+@keyframes t-input-shake {
+  0% {
+    transform: translateX(0);
+  }
+  28.57% {
+    transform: translateX(var(--t-shake-distance));
+  }
+  57.14% {
+    transform: translateX(calc(var(--t-shake-distance) * -1));
+  }
+  78.57% {
+    transform: translateX(var(--t-shake-overshoot));
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+.t-input-shake {
+  animation: t-input-shake 280ms var(--t-shake-ease);
+  will-change: transform;
+}
+
+/* ----------------------------------------------------------------------------
+ * Success check — icon fades in, rotates upright, settles with a Y-bob; an SVG
+ * <path> inside draws its stroke. Toggle data-state "in" to play. COLOR comes
+ * from the icon's own token (e.g. text-success). Appear-only (bring your own
+ * hide). Give the drawn <path> `pathLength="1"` for a length-agnostic draw.
+ * ---------------------------------------------------------------------------- */
+@keyframes t-check-pop {
+  0% {
+    transform: rotate(-80deg) translateY(40%);
+    opacity: 0;
+    filter: blur(10px);
+  }
+  60% {
+    transform: rotate(0) translateY(8%);
+  }
+  100% {
+    transform: rotate(0) translateY(0);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+@keyframes t-check-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.t-success-check {
+  display: inline-flex;
+  transform-origin: center;
+}
+.t-success-check[data-state="in"] {
+  animation: t-check-pop 500ms cubic-bezier(0.34, 1.35, 0.64, 1) both;
+}
+.t-success-check[data-state="in"] path {
+  stroke-dasharray: 1;
+  animation: t-check-draw 500ms cubic-bezier(0.22, 1, 0.36, 1) 80ms both;
+}
+
+/* ----------------------------------------------------------------------------
+ * Avatar group hover — distance-falloff lift with bouncy spring return.
+ * Set per-avatar --shift / --scale-active from JS based on distance to the
+ * hovered avatar (see analysis doc); this rule owns only the spring tween.
+ * ---------------------------------------------------------------------------- */
+.t-avatar {
+  transform-origin: center;
+  transform: translateY(var(--shift, 0px)) scale(var(--scale-active, 1));
+  transition: transform var(--t-avatar-dur) var(--t-avatar-ease);
+  will-change: transform;
+}
+
+/* ----------------------------------------------------------------------------
+ * Tabs sliding pill — an absolutely-positioned indicator that slides between
+ * tabs. JS measures the active tab and writes the pill's transform inline.
+ * NOTE: the catalog version tweens `width`; per JST discipline the use:tabsPill
+ * action sets the pill's width INSTANTLY (no transition) and animates only
+ * transform: translateX() — so position slides with zero layout reflow and the
+ * rounded corners stay crisp. The pill is a decorative background — give it a
+ * bg-* token in the component.
+ * ---------------------------------------------------------------------------- */
+.t-tabs-pill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translateX(0);
+  transition: transform var(--t-tabs-dur) var(--t-tabs-ease);
+  will-change: transform;
+}
+
+/* ----------------------------------------------------------------------------
+ * Skeleton reveal — blur-in for real content that replaces a skeleton loader.
+ * Add `skeleton-reveal` to the real content container that renders once loading
+ * finishes; it blurs in from blur(8px) as the skeleton fades/unmounts. A shared
+ * global utility (consumed by parents of the skeleton components).
+ * ---------------------------------------------------------------------------- */
+@keyframes skeleton-reveal {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+.skeleton-reveal {
+  animation: skeleton-reveal 350ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ----------------------------------------------------------------------------
+ * Reduced motion — disable every interaction transition in this layer.
+ * ---------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .t-modal,
+  .t-dropdown,
+  .t-panel-slide,
+  .t-icon-swap .t-icon,
+  .t-text-swap,
+  .t-badge,
+  .t-badge-dot,
+  .t-digit-group .t-digit,
+  .t-input-shake,
+  .t-success-check,
+  .t-success-check[data-state="in"],
+  .t-success-check[data-state="in"] path,
+  .t-avatar,
+  .t-tabs-pill,
+  .skeleton-reveal {
+    animation: none !important;
+    transition: none !important;
+  }
+  .t-avatar {
+    transform: none !important;
+  }
+}

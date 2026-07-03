@@ -1,0 +1,334 @@
+/**
+ * Animista CSS Animations — Standard Animation Library
+ * Licensed under FreeBSD License.
+ * See http://animista.net/license for more info.
+ * w: http://animista.net, t: @cssanimista
+ *
+ * Usage: Import in root +layout.svelte alongside app.css.
+ * Pair with $lib/actions/reveal.ts for scroll-triggered animations.
+ * See: ~/code/jat/shared/css-animations.md for strategy docs.
+ */
+
+/* ----------------------------------------
+ * tracking-in-expand
+ * Text letters expand in from compressed.
+ * Use on: headings, hero text on page load.
+ * ---------------------------------------- */
+.tracking-in-expand {
+  -webkit-animation: tracking-in-expand 0.7s cubic-bezier(0.215, 0.61, 0.355, 1)
+    both;
+  animation: tracking-in-expand 0.7s cubic-bezier(0.215, 0.61, 0.355, 1) both;
+}
+
+@-webkit-keyframes tracking-in-expand {
+  0% {
+    letter-spacing: -0.5em;
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes tracking-in-expand {
+  0% {
+    letter-spacing: -0.5em;
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* ----------------------------------------
+ * tracking-out-contract
+ * Text letters compress out to invisible.
+ * Use on: headings during exit/transition.
+ * ---------------------------------------- */
+.tracking-out-contract {
+  -webkit-animation: tracking-out-contract 0.7s
+    cubic-bezier(0.55, 0.085, 0.68, 0.53) both;
+  animation: tracking-out-contract 0.7s cubic-bezier(0.55, 0.085, 0.68, 0.53)
+    both;
+}
+
+@-webkit-keyframes tracking-out-contract {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    letter-spacing: -0.5em;
+    opacity: 0;
+  }
+}
+@keyframes tracking-out-contract {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    letter-spacing: -0.5em;
+    opacity: 0;
+  }
+}
+
+/* ----------------------------------------
+ * slide-in-blurred-left
+ * Element slides in from left with blur.
+ * Use on: hero images, avatars, feature images.
+ * ---------------------------------------- */
+.slide-in-blurred-left {
+  -webkit-animation: slide-in-blurred-left 0.6s cubic-bezier(0.23, 1, 0.32, 1)
+    both;
+  animation: slide-in-blurred-left 0.6s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+@-webkit-keyframes slide-in-blurred-left {
+  0% {
+    -webkit-transform: translateX(-1000px) scaleX(2.5) scaleY(0.2);
+    transform: translateX(-1000px) scaleX(2.5) scaleY(0.2);
+    -webkit-transform-origin: 100% 50%;
+    transform-origin: 100% 50%;
+    -webkit-filter: blur(40px);
+    filter: blur(40px);
+    opacity: 0;
+  }
+  100% {
+    -webkit-transform: translateX(0) scaleY(1) scaleX(1);
+    transform: translateX(0) scaleY(1) scaleX(1);
+    -webkit-transform-origin: 50% 50%;
+    transform-origin: 50% 50%;
+    -webkit-filter: blur(0);
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+@keyframes slide-in-blurred-left {
+  0% {
+    -webkit-transform: translateX(-1000px) scaleX(2.5) scaleY(0.2);
+    transform: translateX(-1000px) scaleX(2.5) scaleY(0.2);
+    -webkit-transform-origin: 100% 50%;
+    transform-origin: 100% 50%;
+    -webkit-filter: blur(40px);
+    filter: blur(40px);
+    opacity: 0;
+  }
+  100% {
+    -webkit-transform: translateX(0) scaleY(1) scaleX(1);
+    transform: translateX(0) scaleY(1) scaleX(1);
+    -webkit-transform-origin: 50% 50%;
+    transform-origin: 50% 50%;
+    -webkit-filter: blur(0);
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+
+/* ----------------------------------------
+ * fade-in-bottom
+ * Element fades in while rising from below.
+ * Use on: section cards on scroll reveal.
+ * ---------------------------------------- */
+.fade-in-bottom {
+  -webkit-animation: fade-in-bottom 0.6s cubic-bezier(0.39, 0.575, 0.565, 1)
+    both;
+  animation: fade-in-bottom 0.6s cubic-bezier(0.39, 0.575, 0.565, 1) both;
+}
+
+@-webkit-keyframes fade-in-bottom {
+  0% {
+    -webkit-transform: translateY(30px);
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  100% {
+    -webkit-transform: translateY(0);
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes fade-in-bottom {
+  0% {
+    -webkit-transform: translateY(30px);
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  100% {
+    -webkit-transform: translateY(0);
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ----------------------------------------
+ * scale-in-center
+ * Element scales up from zero at center.
+ * Use on: metric cards, badges, staggered grids.
+ * ---------------------------------------- */
+.scale-in-center {
+  -webkit-animation: scale-in-center 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+    both;
+  animation: scale-in-center 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+@-webkit-keyframes scale-in-center {
+  0% {
+    -webkit-transform: scale(0);
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes scale-in-center {
+  0% {
+    -webkit-transform: scale(0);
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ----------------------------------------
+ * fade-in
+ * Simple opacity fade entrance.
+ * Use on: list items with stagger delay.
+ * ---------------------------------------- */
+.fade-in {
+  -webkit-animation: fade-in 0.4s cubic-bezier(0.39, 0.575, 0.565, 1) both;
+  animation: fade-in 0.4s cubic-bezier(0.39, 0.575, 0.565, 1) both;
+}
+
+@-webkit-keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* ----------------------------------------
+ * puff-in-center
+ * Icon scaling effect for collapsed sidebar nav items.
+ * Use on: icons when sidebar transitions to collapsed state.
+ * ---------------------------------------- */
+.puff-in-center {
+  -webkit-animation: puff-in-center 0.7s cubic-bezier(0.47, 0, 0.745, 0.715)
+    both;
+  animation: puff-in-center 0.7s cubic-bezier(0.47, 0, 0.745, 0.715) both;
+}
+
+@-webkit-keyframes puff-in-center {
+  0% {
+    -webkit-transform: scale(2);
+    transform: scale(2);
+    -webkit-filter: blur(4px);
+    filter: blur(4px);
+    opacity: 0;
+  }
+  100% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+    -webkit-filter: blur(0);
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+@keyframes puff-in-center {
+  0% {
+    -webkit-transform: scale(2);
+    transform: scale(2);
+    -webkit-filter: blur(4px);
+    filter: blur(4px);
+    opacity: 0;
+  }
+  100% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+    -webkit-filter: blur(0);
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+
+/* ----------------------------------------
+ * Scroll-reveal utility
+ * Elements with .reveal-hidden are invisible until
+ * the reveal action adds the animation class.
+ * ---------------------------------------- */
+.reveal-hidden {
+  opacity: 0;
+}
+
+/* ----------------------------------------
+ * FLIP animation for sortable/reorderable lists
+ * (Svelte runtime — NOT a CSS keyframe)
+ *
+ * Use `animate:flip` from "svelte/animate" to make list items
+ * slide smoothly to new positions on sort/filter changes.
+ *
+ * Pattern:
+ *   import { flip } from "svelte/animate"
+ *   import { cubicOut } from "svelte/easing"
+ *
+ *   {#each sortedItems as item (item.id)}
+ *     <div animate:flip={{ duration: 300, easing: cubicOut }}>
+ *       <div class="card">...</div>
+ *     </div>
+ *   {/each}
+ *
+ * GOTCHA: use:reveal conflicts with FLIP — remove use:reveal
+ * and transition: directives from elements inside a FLIP wrapper.
+ * IntersectionObserver re-fires when FLIP repositions elements,
+ * replaying the entrance animation instead of sliding.
+ *
+ * LIMITATION: animate:flip does NOT work on <tr> table rows.
+ * Browsers ignore CSS transforms on <tr> elements. Use <div>
+ * with CSS grid/flexbox instead if you need FLIP on table-like UI.
+ *
+ * Full docs: ~/code/jat/shared/css-animations.md (Pattern #6)
+ * ---------------------------------------- */
+
+/* ----------------------------------------
+ * Reduced motion: disable all animations
+ * ---------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .tracking-in-expand,
+  .tracking-out-contract,
+  .slide-in-blurred-left,
+  .fade-in-bottom,
+  .scale-in-center,
+  .fade-in,
+  .puff-in-center,
+  .reveal-hidden {
+    animation: none !important;
+    -webkit-animation: none !important;
+    opacity: 1;
+  }
+}
