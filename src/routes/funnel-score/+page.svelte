@@ -1,6 +1,6 @@
 <script lang="ts">
   import "$lib/home/home.css"
-  import { tick } from "svelte"
+  import { onMount, tick } from "svelte"
   import { enhance } from "$app/forms"
   import { page } from "$app/state"
   import TerminalNav from "$lib/home/TerminalNav.svelte"
@@ -27,6 +27,17 @@
     await tick()
     submitEl?.click()
   }
+
+  // Deep-link auto-run: ?url=…&run=1 fills the field and fires the scan once,
+  // so a judge landing from the homepage "SCAN ITSTODAY.ORG" link gets results
+  // without a manual click. Plain ?url=… (no run) still just prefills.
+  onMount(async () => {
+    const run = page.url.searchParams.get("run")
+    if (run && urlValue.trim()) {
+      await tick()
+      submitEl?.click()
+    }
+  })
 
   const report = $derived(form && "report" in form ? form.report : null)
 

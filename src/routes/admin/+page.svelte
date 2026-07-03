@@ -70,7 +70,7 @@
       production these are your live accounts, audited on a schedule. Drive the loop in three steps:
     </p>
     <ol class="mt-5 grid gap-4 sm:grid-cols-3">
-      {#each [["01", "Run a sweep", `audits the ${stats.accountsDue} account${stats.accountsDue === 1 ? "" : "s"} that are due, all at once`], ["02", "Open the inbox", "read each finding with its evidence and dollar impact"], ["03", "Approve one", "watch the spend-cap gate refuse an unsafe auto-apply"]] as [n, title, sub] (n)}
+      {#each [["01", "Run a sweep", stats.accountsDue > 0 ? `audits the ${stats.accountsDue} account${stats.accountsDue === 1 ? "" : "s"} that are due, all at once` : "all due accounts have been audited — open the inbox next"], ["02", "Open the inbox", "read each finding with its evidence and dollar impact"], ["03", "Approve one", "watch the spend-cap gate refuse an unsafe auto-apply"]] as [n, title, sub] (n)}
         <li class="flex flex-col gap-1">
           <span class="hud text-primary">{n}</span>
           <span class="font-mono text-sm font-semibold">{title}</span>

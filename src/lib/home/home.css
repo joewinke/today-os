@@ -24,6 +24,22 @@
   }
 }
 
+/* hero eyebrow legibility over the dense WebGL particle field.
+   On small screens the text sits directly on the vortex, so give it a subtle
+   semi-opaque base-100 backdrop pill + token text-shadow. On desktop the
+   layout gives it clear space, so drop the pill and keep only a faint shadow. */
+.hero-eyebrow {
+  text-shadow: 0 1px 3px color-mix(in oklch, var(--color-base-100) 80%, transparent);
+}
+@media (max-width: 640px) {
+  .hero-eyebrow {
+    background: color-mix(in oklch, var(--color-base-100) 62%, transparent);
+    padding: 0.3rem 0.6rem;
+    border-radius: 9999px;
+    backdrop-filter: blur(2px);
+  }
+}
+
 /* corner registration marks — fixed L-shaped hairlines */
 .reg-mark {
   position: fixed;

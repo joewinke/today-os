@@ -139,10 +139,10 @@
       n: "04",
       title: "Read the Thinking",
       body: "The three questions the contest asks — what it does, why this, what's next — answered in the README.",
-      href: "https://github.com/joewinke/today-os#readme",
-      cta: "READ THE README",
+      href: "/readme",
+      cta: "READ THE THINKING",
       primary: false,
-      external: true,
+      external: false,
     },
   ]
 
@@ -227,7 +227,7 @@
     <span class="crosshair" style="left: calc(50% - 8px); top: 95px;" aria-hidden="true"></span>
 
     <div class="pointer-events-none relative z-10 px-6 pt-16 sm:px-10 lg:px-16">
-      <p class="hud mb-6 flex items-center gap-2">
+      <p class="hud hero-eyebrow mb-6 inline-flex items-center gap-2">
         <span class="live-dot"></span>
         PERFORMANCE DIGITAL ADVERTISING · EST. BALTIMORE MD
       </p>
@@ -554,7 +554,7 @@
         >
           Run the Scan
         </a>
-        <a href="/funnel-score?url=itstoday.org" class="hud text-primary transition-transform hover:translate-x-1">
+        <a href="/funnel-score?url=itstoday.org&run=1" class="hud text-primary transition-transform hover:translate-x-1">
           OR SCAN ITSTODAY.ORG &rarr;
         </a>
       </div>
@@ -577,8 +577,7 @@
       </p>
       <div class="mt-2 flex flex-wrap items-center gap-5">
         <a
-          href="https://github.com/joewinke/today-os#readme"
-          rel="external"
+          href="/readme"
           class="btn btn-primary btn-lg rounded-none px-10 font-mono text-sm tracking-[0.08em] uppercase"
         >
           Read the Plan

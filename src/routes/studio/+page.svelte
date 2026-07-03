@@ -23,9 +23,13 @@
   } from "$lib/studio/broll"
   import EdlPanel from "$lib/studio/EdlPanel.svelte"
   import Timeline from "$lib/studio/Timeline.svelte"
+  import RoughCutPlayer from "$lib/studio/RoughCutPlayer.svelte"
 
   // ── The session ─────────────────────────────────────────────────────────
   let segs = $state(fixtureSegs())
+
+  // Rough-cut animatic preview (watch the whole edit once)
+  let previewCutOpen = $state(false)
 
   const edlText = $derived(serializeEdl(segs))
   const kept = $derived(keptDuration(segs))
@@ -274,9 +278,8 @@
         <a href="/admin" class="transition-colors hover:text-primary">AD OPS</a>
         <a href="/studio/batch" class="text-primary transition-colors hover:text-base-content">BATCH →</a>
         <a
-          href="https://github.com/joewinke/today-os#readme"
-          class="transition-colors hover:text-primary"
-          rel="external">NEXT: THE THINKING →</a
+          href="/readme"
+          class="transition-colors hover:text-primary">NEXT: THE THINKING →</a
         >
       </nav>
     </header>
@@ -361,6 +364,13 @@
     <!-- ── Toolbar ────────────────────────────────────────────────────── -->
     <section class="flex flex-wrap items-center justify-between gap-3">
       <div class="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          class="hud cursor-pointer border border-primary bg-primary px-4 py-2 text-primary-content transition-colors hover:bg-transparent hover:text-primary"
+          onclick={() => (previewCutOpen = true)}
+        >
+          ▸ PREVIEW THE CUT
+        </button>
         <button
           type="button"
           class="hud cursor-pointer border border-primary px-4 py-2 text-primary transition-colors hover:bg-primary hover:text-primary-content disabled:cursor-wait disabled:opacity-50"
@@ -602,8 +612,7 @@
           Batch: Personalize per Lead &rarr;
         </a>
         <a
-          href="https://github.com/joewinke/today-os#readme"
-          rel="external"
+          href="/readme"
           class="hud text-base-content/60 hover:text-primary transition-colors"
         >
           OR FINISH THE TOUR &rarr; 04 · THE THINKING (README)
@@ -612,6 +621,8 @@
     </div>
   </div>
 </div>
+
+<RoughCutPlayer bind:open={previewCutOpen} {segs} {broll} onClose={() => (previewCutOpen = false)} />
 
 <style>
   .cam-chip {

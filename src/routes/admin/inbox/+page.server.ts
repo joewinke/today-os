@@ -4,6 +4,7 @@ import {
   getRecommendations,
   approveRecommendation,
   dismissRecommendation,
+  evaluateAutoApplyGate,
 } from "$lib/adops/store"
 import type { Actions, PageServerLoad } from "./$types"
 
@@ -17,7 +18,13 @@ export const load: PageServerLoad = async () => {
       // High risk first inside each status bucket.
       const riskOrder = { high: 0, medium: 1, low: 2 } as const
       proposed.sort((a, b) => riskOrder[a.risk] - riskOrder[b.risk])
-      return { account, proposed, approved, dismissed }
+      // The safety-demo hook: the first proposed rec whose approval would fail
+      // closed (auto autonomy + no spend cap). Computed with the SAME gate the
+      // approve action runs — reused, not duplicated — so the inbox can invite
+      // the reviewer to approve exactly the rec that will get BLOCKED.
+      const blockingRecId =
+        proposed.find((r) => evaluateAutoApplyGate(account, r).verdict === "blocked")?.id ?? null
+      return { account, proposed, approved, dismissed, blockingRecId }
     })
     .filter((group) => group.proposed.length > 0 || group.approved.length > 0 || group.dismissed > 0)
 

@@ -296,9 +296,9 @@ describe("store", () => {
     expect(latestSnapshot("acct-tiktok")).toBeTruthy()
   })
 
-  it("listDue returns the overdue accounts (google + meta), not the pre-run/future ones", () => {
+  it("listDue returns the overdue accounts (google + meta + taboola), not the pre-run/future ones", () => {
     const due = listDue().map((a) => a.id).sort()
-    expect(due).toEqual(["acct-google", "acct-meta"])
+    expect(due).toEqual(["acct-google", "acct-meta", "acct-taboola"])
   })
 
   it("runAudit persists red-flag + llm recs, dedupes, and advances the schedule", async () => {
@@ -328,9 +328,23 @@ describe("store", () => {
 
   it("runSweep drains every due account and logs the tick", async () => {
     const results = await runSweep()
-    expect(results.map((r) => r.account.id).sort()).toEqual(["acct-google", "acct-meta"])
+    expect(results.map((r) => r.account.id).sort()).toEqual(["acct-google", "acct-meta", "acct-taboola"])
     expect(listDue()).toHaveLength(0)
     expect(getEvents().some((e) => e.kind === "sweep")).toBe(true)
+  })
+
+  it("the guided sweep path surfaces a BLOCKED-gate rec on the due auto-without-cap account", async () => {
+    // The marquee safety moment must be reachable via Run sweep → inbox → approve,
+    // not only via a manual audit of an off-schedule account.
+    await runSweep()
+    const taboola = getAccount("acct-taboola")!
+    const proposed = getRecommendations({ accountId: "acct-taboola", status: "proposed" })
+    expect(proposed.length).toBeGreaterThan(0)
+    // At least one swept rec would fail closed when approved — this is the rec
+    // the inbox flags with the "approve this to see the gate refuse it" hint.
+    const blocking = proposed.filter((r) => evaluateAutoApplyGate(taboola, r).verdict === "blocked")
+    expect(blocking.length).toBeGreaterThan(0)
+    expect(approveRecommendation(blocking[0].id).gate_verdict).toBe("blocked")
   })
 
   it("approve stamps the gate verdict; TikTok (propose) reads manual_review", () => {

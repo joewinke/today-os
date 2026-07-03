@@ -9,6 +9,19 @@
   let { data, form }: { data: PageServerData; form: ActionData } = $props()
 
   let processing = $state<string | null>(null)
+  // The rec just approved — flashes an in-place highlight + "✓ APPROVED" pop so
+  // the re-sort to the bottom of the group reads as "recorded", not "vanished".
+  let justApprovedId = $state<string | null>(null)
+  let justApprovedTimer: ReturnType<typeof setTimeout> | null = null
+
+  function flashApproved(id: string) {
+    justApprovedId = id
+    if (justApprovedTimer) clearTimeout(justApprovedTimer)
+    justApprovedTimer = setTimeout(() => (justApprovedId = null), 2600)
+  }
+  $effect(() => () => {
+    if (justApprovedTimer) clearTimeout(justApprovedTimer)
+  })
 
   const totalProposed = $derived(data.groups.reduce((n, g) => n + g.proposed.length, 0))
   const totalApproved = $derived(data.groups.reduce((n, g) => n + g.approved.length, 0))
@@ -59,7 +72,8 @@
     <div class="mt-4 space-y-4">
       {#each [...group.proposed, ...group.approved] as rec, i (rec.id)}
         <article
-          class="border p-4 sm:p-5"
+          class="approve-card border p-4 sm:p-5"
+          class:is-just-approved={rec.id === justApprovedId}
           style="border-color: var(--color-line)"
           use:reveal={{ animation: "fade-in", delay: Math.min(i, 6) * 0.05 }}
         >
@@ -73,6 +87,11 @@
             </span>
             {#if rec.source === "red_flag" && typeof rec.proposed_change["rule_id"] === "string"}
               <span class="hud">{rec.proposed_change["rule_id"]}</span>
+            {/if}
+            {#if rec.status === "proposed" && rec.id === group.blockingRecId}
+              <span class="badge badge-outline badge-sm badge-error font-mono">
+                ⚑ APPROVE THIS TO SEE THE GATE REFUSE IT
+              </span>
             {/if}
           </div>
 
@@ -103,10 +122,13 @@
                 method="POST"
                 action="?/approve"
                 use:enhance={() => {
+                  const approvedId = rec.id
                   processing = rec.id
-                  return async ({ update }) => {
+                  return async ({ update, result }) => {
                     processing = null
                     await update()
+                    // Flash unless the approve was rejected (e.g. already-approved).
+                    if (result?.type !== "failure" && result?.type !== "error") flashApproved(approvedId)
                   }
                 }}
               >
@@ -143,7 +165,17 @@
             </div>
           {:else if rec.status === "approved"}
             <div class="mt-4 flex flex-wrap items-center gap-2 border-t pt-4" style="border-color: var(--color-line)">
-              <span class="badge badge-outline badge-sm font-mono">APPROVED</span>
+              {#if rec.id === justApprovedId}
+                <span
+                  class="scale-in-center badge badge-sm badge-success font-mono"
+                  role="status"
+                  aria-live="polite"
+                >
+                  ✓ JUST APPROVED
+                </span>
+              {:else}
+                <span class="badge badge-outline badge-sm font-mono">APPROVED</span>
+              {/if}
               {#if rec.gate_verdict}
                 <span class="badge badge-outline badge-sm font-mono {GATE_BADGE_CLASS[rec.gate_verdict]}">
                   GATE: {rec.gate_verdict.toUpperCase().replace("_", " ")}
@@ -176,3 +208,22 @@
     Enter the Studio &rarr;
   </a>
 </div>
+
+<style>
+  /* In-place approval flash: a brief success ring that glows in and settles,
+     so the re-sort to the bottom of the group reads as "recorded", not "gone".
+     Transition-only (no @keyframes); driven by toggling .is-just-approved. */
+  .approve-card {
+    transition: box-shadow 500ms ease-out;
+  }
+  .approve-card.is-just-approved {
+    box-shadow:
+      0 0 0 1px var(--color-success),
+      0 0 22px -6px var(--color-success);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .approve-card {
+      transition: none;
+    }
+  }
+</style>

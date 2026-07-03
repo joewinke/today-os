@@ -65,18 +65,21 @@
             <tbody>
               {#each LEADS as l, i (l.company)}
                 <tr
-                  class="lead-row border-b border-[var(--color-line)] last:border-b-0"
+                  class="lead-row cursor-pointer border-b border-[var(--color-line)] last:border-b-0"
                   class:lead-active={i === selected}
+                  role="button"
+                  tabindex="0"
+                  aria-pressed={i === selected}
+                  aria-label="Render variant for {l.company}, {l.city}"
+                  onclick={() => (selected = i)}
+                  onkeydown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault()
+                      selected = i
+                    }
+                  }}
                 >
-                  <td class="p-0" colspan="1">
-                    <button
-                      type="button"
-                      class="block w-full cursor-pointer px-3 py-2 text-left font-mono text-xs text-base-content"
-                      aria-pressed={i === selected}
-                      aria-label="Render variant for {l.company}, {l.city}"
-                      onclick={() => (selected = i)}
-                    >{l.company}</button>
-                  </td>
+                  <td class="lead-company px-3 py-2 font-mono text-xs text-base-content">{l.company}</td>
                   <td class="px-2 py-2 font-mono text-xs text-base-content/70">{l.city}</td>
                   <td class="hidden px-2 py-2 font-mono text-xs text-base-content/70 sm:table-cell">{l.vertical}</td>
                   <td class="hud px-2 py-2 normal-case">{l.offer}</td>
@@ -158,8 +161,7 @@
       </p>
       <div class="flex flex-wrap items-center gap-5">
         <a
-          href="https://github.com/joewinke/today-os#readme"
-          rel="external"
+          href="/readme"
           class="btn btn-primary btn-lg rounded-none px-8 font-mono text-sm tracking-[0.08em] uppercase"
         >
           Read the Thinking (README) &rarr;
@@ -182,8 +184,12 @@
   .lead-active {
     background: color-mix(in oklch, var(--color-primary) 12%, transparent);
   }
-  .lead-active button {
+  .lead-active .lead-company {
     color: var(--color-primary);
+  }
+  .lead-row:focus-visible {
+    outline: 1px solid var(--color-primary);
+    outline-offset: -1px;
   }
   .token-sub {
     background: color-mix(in oklch, var(--color-primary) 22%, transparent);

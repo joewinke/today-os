@@ -70,7 +70,9 @@ export const ACCOUNT_SEEDS: AccountSeed[] = [
     cadence_hours: 24,
     spend_cap_cents: null, // auto WITHOUT cap — demos the fail-closed BLOCKED verdict
     enabled: true,
-    next_run_offset_hours: 5,
+    // DUE (overdue) so the guided "Run sweep → inbox → approve" path surfaces
+    // a rec that BLOCKS on approval — the marquee fail-closed safety moment.
+    next_run_offset_hours: -3,
   },
   {
     id: "acct-tiktok",
