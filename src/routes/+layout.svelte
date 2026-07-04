@@ -3,7 +3,6 @@
   import "$lib/animista.css"
   import "$lib/transitions.css"
   import { page } from "$app/state"
-  import TourRail from "$lib/tour/TourRail.svelte"
   import ThemeToggle from "$lib/ThemeToggle.svelte"
   import { Sidebar, OperatorGate, ClientSwitcher, NAV_GROUPS, isOperatorChosen } from "$lib/cockpit"
   import { gatedRoute, cockpitRoute } from "$lib/os/stages"
@@ -44,10 +43,15 @@
   {@render children()}
 {/if}
 
-<!-- Tour rail is superseded by the sidebar inside the cockpit; keep it only on
-     non-cockpit, non-client surfaces (the marketing scan flow). -->
-{#if !external && !inShell}
-  <TourRail />
+<!-- SANDBOX mode badge — this is the real product in its safe mode (Stripe-test
+     semantics). Shown on the operator cockpit surfaces, beside the theme toggle. -->
+{#if inShell}
+  <span
+    class="hud border-warning/45 text-warning bg-base-100/90 fixed top-2.5 right-14 z-[60] border px-2.5 py-1.5 backdrop-blur"
+    title="Sandbox — seeded accounts, no real spend. Connect accounts to go live."
+  >
+    ● SANDBOX
+  </span>
 {/if}
 <!-- Light/dark toggle — one instance, fixed in the top-right header corner across
      every operator + marketing surface. Client-facing /p + /report inherit the

@@ -254,20 +254,20 @@
       <h2 class="statement text-[clamp(2.2rem,5.5vw,4.6rem)]">Running<br />Right Now.</h2>
       <p class="text-base-content/70 max-w-2xl text-[15px] leading-relaxed">
         Account hygiene doesn&rsquo;t scale with account count. Inside Today OS the loop runs on a
-        cadence, surfaces the waste, and waits for a human at the gate. These are its live demo
-        fixtures.
+        cadence, surfaces the waste, and waits for a human at the gate. This is the product in
+        sandbox mode &mdash; seeded accounts, no real spend.
       </p>
     </div>
 
     <p class="hud text-base-content/50">
-      LIVE DEMO FIXTURES — <span class="text-warning">$20,905/MO</span> WASTE SURFACED · 25
+      SANDBOX FIXTURES — <span class="text-warning">$20,905/MO</span> WASTE SURFACED · 25
       RECOMMENDATIONS · 1 BLOCKED BY THE SPEND-CAP GATE
     </p>
 
     <!-- findings ticker -->
     <div
       class="border-line mt-8 overflow-hidden border-y py-3"
-      aria-label="Sample audit findings"
+      aria-label="Sandbox audit findings"
     >
       <div class="ticker">
         {#each [...findings, ...findings] as f, i (i)}
@@ -323,9 +323,10 @@
         Sign in.<br />Operate it<br />yourself.
       </h2>
       <p class="text-base-content/70 max-w-2xl text-[15px] leading-relaxed">
-        Everything here runs on sample data. Point it at real accounts and it&rsquo;s a marketing
-        team that never sleeps &mdash; finding advertisers, pitching them, auditing spend behind your
-        approval, and proving the result on a ledger. Step into the seat and drive it.
+        You&rsquo;re looking at the real product in sandbox mode &mdash; seeded accounts, no real
+        spend. Connect your accounts to go live and it&rsquo;s a marketing team that never sleeps
+        &mdash; finding advertisers, pitching them, auditing spend behind your approval, and proving
+        the result on a ledger. Step into the seat and drive it.
       </p>
       <div class="mt-2 flex flex-wrap items-center gap-5">
         <a

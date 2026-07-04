@@ -7,7 +7,7 @@ import {
   evaluateAutoApplyGate,
 } from "$lib/adops/store"
 import { getActiveTheme } from "$lib/adops/theme"
-import { recordWasteRecovered } from "$lib/os/store"
+import { recordWasteRecovered, markSetup } from "$lib/os/store"
 import type { Actions, PageServerLoad } from "./$types"
 
 export const load: PageServerLoad = async () => {
@@ -39,6 +39,7 @@ export const actions: Actions = {
     const id = String(form.get("id") ?? "")
     try {
       const rec = approveRecommendation(id)
+      markSetup("approved")
       // PROVE: a human just approved this change — if it recovers wasted spend,
       // tick the OS ledger (waste recovered) for the client under management.
       const waste = rec.proposed_change?.["waste_cents_monthly"]

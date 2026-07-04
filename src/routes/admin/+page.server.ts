@@ -8,6 +8,7 @@ import {
   runSweep,
 } from "$lib/adops/store"
 import { getActiveTheme } from "$lib/adops/theme"
+import { markSetup } from "$lib/os/store"
 import type { Actions, PageServerLoad } from "./$types"
 
 export const load: PageServerLoad = async () => {
@@ -46,6 +47,7 @@ export const actions: Actions = {
 
   runSweep: async () => {
     const results = await runSweep()
+    markSetup("swept")
     return {
       ok: true as const,
       action: "sweep" as const,

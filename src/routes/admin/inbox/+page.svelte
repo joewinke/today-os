@@ -68,7 +68,7 @@
       <span class="hud">{PROVIDER_LABELS[group.account.provider]}</span>
       <span class="hud">AUTONOMY: {AUTONOMY_LABELS[group.account.autonomy]}</span>
       {#if group.account.autonomy === "auto" && group.account.spend_cap_cents == null}
-        <span class="hud text-error">NO SPEND CAP — AUTO FAILS CLOSED</span>
+        <span class="hud text-error">⚠ AUTO WITHOUT A SPEND CAP — THE GATE WILL REFUSE ALL APPLIES</span>
       {/if}
       <span class="hud ml-auto">
         {group.proposed.length} PROPOSED{group.dismissed > 0 ? ` · ${group.dismissed} DISMISSED` : ""}
@@ -96,7 +96,7 @@
             {/if}
             {#if rec.status === "proposed" && rec.id === group.blockingRecId}
               <span class="badge badge-outline badge-sm badge-error font-mono">
-                ⚑ APPROVE THIS TO SEE THE GATE REFUSE IT
+                ⚑ WILL BE REFUSED — AUTO, NO SPEND CAP
               </span>
             {/if}
           </div>

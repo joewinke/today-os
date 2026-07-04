@@ -21,6 +21,32 @@
   function stageLabel(key: string): string {
     return PIPELINE_STAGES.find((s) => s.key === key)?.label ?? key
   }
+
+  // First-run "Get set up" checklist — items check off from real store actions.
+  const SETUP_STEPS = [
+    { key: "scanned", label: "Scan your first site", href: "/funnel-score" },
+    { key: "queued", label: "Queue a prospect", href: "/os/pipeline" },
+    { key: "swept", label: "Run a sweep", href: "/admin" },
+    { key: "approved", label: "Approve a fix", href: "/admin/inbox" },
+  ] as const
+  const setupDone = $derived(SETUP_STEPS.filter((s) => data.setup[s.key]).length)
+  let dismissed = $state(false)
+  $effect(() => {
+    try {
+      dismissed = localStorage.getItem("todayos-setup-dismissed") === "1"
+    } catch {
+      dismissed = false
+    }
+  })
+  const showSetup = $derived(!dismissed && setupDone < SETUP_STEPS.length)
+  function dismissSetup() {
+    dismissed = true
+    try {
+      localStorage.setItem("todayos-setup-dismissed", "1")
+    } catch {
+      /* ignore */
+    }
+  }
 </script>
 
 <svelte:head>
@@ -46,6 +72,37 @@
       Scan a prospect &rarr;
     </a>
   </header>
+
+  <!-- First-run onboarding checklist (dismissible; checks off from real actions) -->
+  {#if showSetup}
+    <section class="mt-6 border" style="border-color: var(--color-line)">
+      <div class="flex items-center justify-between border-b px-4 py-2.5" style="border-color: var(--color-line)">
+        <span class="hud text-primary">GET SET UP · {setupDone}/{SETUP_STEPS.length}</span>
+        <button
+          type="button"
+          onclick={dismissSetup}
+          aria-label="Dismiss setup checklist"
+          class="hud text-base-content/40 hover:text-base-content transition-colors"
+        >
+          DISMISS ✕
+        </button>
+      </div>
+      <ul class="grid grid-cols-1 divide-y sm:grid-cols-2 sm:divide-y-0" style="border-color: var(--color-line)">
+        {#each SETUP_STEPS as step, i (step.key)}
+          {@const done = data.setup[step.key]}
+          <li class="border-[var(--color-line)] {i % 2 === 0 ? 'sm:border-r' : ''} {i < 2 ? 'sm:border-b' : ''}">
+            <a href={step.href} class="hover:bg-base-200 flex items-center gap-3 px-4 py-3 transition-colors">
+              <span class="grid h-5 w-5 shrink-0 place-items-center border {done ? 'border-success text-success' : 'border-line text-base-content/30'}">
+                {done ? "✓" : ""}
+              </span>
+              <span class="text-sm {done ? 'text-base-content/45 line-through' : 'text-base-content'}">{step.label}</span>
+              {#if !done}<span class="hud text-primary ml-auto">START &rarr;</span>{/if}
+            </a>
+          </li>
+        {/each}
+      </ul>
+    </section>
+  {/if}
 
   <!-- Operating numbers -->
   <section class="mt-8 grid grid-cols-2 gap-px border md:grid-cols-5" style="border-color: var(--color-line); background: var(--color-line)" aria-label="Operating numbers">

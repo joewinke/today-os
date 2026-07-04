@@ -1,5 +1,5 @@
 import type { PageServerLoad } from "./$types"
-import { getMetrics, getActivity, getProspects } from "$lib/os/store"
+import { getMetrics, getActivity, getProspects, getSetup } from "$lib/os/store"
 
 /** Relative "2h ago" formatting done server-side so SSR and hydration agree. */
 function ago(at: number, now: number): string {
@@ -18,6 +18,7 @@ export const load: PageServerLoad = async () => {
     metrics: getMetrics(),
     activity: getActivity(9).map((a) => ({ ...a, ago: ago(a.at, now) })),
     prospects: getProspects().slice(0, 6),
+    setup: getSetup(),
   }
 }
 // "Advance a week" control removed from the dashboard (Joe: it exposed the sim

@@ -28,7 +28,11 @@ interface OsState {
   wasteRecoveredCents: number
   pitchesSent: number
   meetingsBooked: number
+  /** First-run "Get set up" checklist — flipped true by the real actions. */
+  setup: { scanned: boolean; queued: boolean; swept: boolean; approved: boolean }
 }
+
+export type SetupStep = "scanned" | "queued" | "swept" | "approved"
 
 // ── Session-scoped singleton (HMR-safe, no DB) ──────────────────────────────
 const STASH = Symbol.for("itstoday.os.stores")
@@ -83,7 +87,18 @@ function createSeeded(): OsState {
     wasteRecoveredCents: 4_820_000, // $48,200 recovered this month (fixture baseline)
     pitchesSent: 34,
     meetingsBooked: 6,
+    setup: { scanned: false, queued: false, swept: false, approved: false },
   }
+}
+
+/** Mark a first-run checklist step done (idempotent). */
+export function markSetup(step: SetupStep): void {
+  getState().setup[step] = true
+}
+
+/** The first-run checklist state for the dashboard "Get set up" card. */
+export function getSetup(): { scanned: boolean; queued: boolean; swept: boolean; approved: boolean } {
+  return { ...getState().setup }
 }
 
 // ── Reads ───────────────────────────────────────────────────────────────────
@@ -122,6 +137,7 @@ function log(kind: ActivityKind, text: string): void {
 /** A scan drops a new prospect card onto the board (CLOSE stage). */
 export function addProspectFromScan(input: { company: string; city: string; offer: string; vertical: string; score: number | null }): Prospect {
   const s = getState()
+  s.setup.scanned = true // a scan happened — checklist step done regardless of dedup
   const existing = s.prospects.find((p) => p.company.toLowerCase() === input.company.toLowerCase())
   if (existing) return existing
   const p: Prospect = { id: `p-${(++s.seq).toString(36)}`, ...input, scoreProjected: false, stage: "new", createdAt: Date.now() }
@@ -187,6 +203,7 @@ export function moveProspect(id: string, stage: PipelineStage): Prospect | null 
   const was = p.stage
   if (was === stage) return p
   p.stage = stage
+  if (stage === "queued") s.setup.queued = true
 
   if (stage === "contacted") {
     s.pitchesSent += 1

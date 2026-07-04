@@ -65,7 +65,9 @@
 
 <div class="flex flex-wrap items-end justify-between gap-3">
   <div>
-    <p class="hud mb-2">STOP 3 · OPERATE · WHEN THEY SAY YES, YOU RUN THEIR ADS</p>
+    <p class="hud mb-2">
+      <span class="text-warning">SANDBOX</span> · AGENTIC AD OPS · CONNECT ACCOUNTS TO GO LIVE
+    </p>
     <h1 class="statement text-4xl sm:text-5xl">Ad Ops</h1>
   </div>
   {#if theme.source === "scanned" && theme.domain}
@@ -80,31 +82,38 @@
 <!-- ORIENTATION: what this is + the one path to follow (a reviewer lands here cold) -->
 <div class="mt-8 grid gap-px border lg:grid-cols-[1fr_auto]" style="border-color: var(--color-line); background: var(--color-line)">
   <div class="bg-base-100 p-5 sm:p-6">
-    <p class="hud text-primary mb-3">DEMO · HOW THIS WORKS</p>
-    <p class="text-base-content/80 max-w-2xl text-sm leading-relaxed">
-      <span class="text-base-content">Different layer from the funnel scan.</span> That graded a
-      landing page &mdash; where traffic lands. This audits the <span class="text-base-content"
-        >ad accounts buying the traffic</span
-      > &mdash; Google, Meta, Taboola, TikTok &mdash; where the biggest budget leaks hide.
-      {#if theme.source === "scanned"}
-        These accounts are <span class="text-base-content">themed to {theme.domain} &mdash; {theme.business}</span>,
-        so the campaigns match the site you scanned. <span class="text-base-content">Sample metrics, no real spend.</span>
-      {:else}
-        Four sample accounts here, seeded with realistic data and deliberate problems.
-        <span class="text-base-content">No real spend.</span>
-        <span class="text-base-content/60">(Showing the Home&nbsp;Improvement example &mdash; scan a site to tailor this to it.)</span>
-      {/if}
-      In production these are your live accounts, audited on a schedule. Drive the loop in three steps:
-    </p>
-    <ol class="mt-5 grid gap-4 sm:grid-cols-3">
-      {#each [["01", "Run a sweep", stats.accountsDue > 0 ? `audits the ${stats.accountsDue} account${stats.accountsDue === 1 ? "" : "s"} that are due, all at once` : "all due accounts have been audited — open the inbox next"], ["02", "Open the inbox", "read each finding with its evidence and dollar impact"], ["03", "Approve one", "watch the spend-cap gate refuse an unsafe auto-apply"]] as [n, title, sub] (n)}
-        <li class="flex flex-col gap-1">
-          <span class="hud text-primary">{n}</span>
-          <span class="font-mono text-sm font-semibold">{title}</span>
-          <span class="text-base-content/55 text-xs leading-relaxed">{sub}</span>
-        </li>
-      {/each}
-    </ol>
+    <details open class="group">
+      <summary class="hud text-primary flex cursor-pointer list-none items-center gap-2">
+        <span class="border-line inline-flex h-4 w-4 shrink-0 items-center justify-center border text-[10px]">?</span>
+        HOW THE SANDBOX WORKS
+        <span class="text-base-content/30 ml-auto transition-transform group-open:rotate-180">▾</span>
+      </summary>
+      <p class="text-base-content/80 mt-4 max-w-2xl text-sm leading-relaxed">
+        <span class="text-base-content">Different layer from the funnel scan.</span> That graded a
+        landing page &mdash; where traffic lands. This audits the <span class="text-base-content"
+          >ad accounts buying the traffic</span
+        > &mdash; Google, Meta, Taboola, TikTok &mdash; where the biggest budget leaks hide.
+        {#if theme.source === "scanned"}
+          These accounts are <span class="text-base-content">themed to {theme.domain} &mdash; {theme.business}</span>,
+          so the campaigns match the site you scanned. <span class="text-base-content">Sandbox data &mdash; no real spend.</span>
+        {:else}
+          Four sandbox accounts, seeded with realistic data and deliberate problems.
+          <span class="text-base-content">No real spend.</span>
+          <span class="text-base-content/60">(Home&nbsp;Improvement example &mdash; scan a site to tailor this to it.)</span>
+        {/if}
+        <span class="text-base-content">Connect accounts to go live</span> and these become your real
+        accounts, audited on a schedule. Drive the loop in three steps:
+      </p>
+      <ol class="mt-5 grid gap-4 sm:grid-cols-3">
+        {#each [["01", "Run a sweep", stats.accountsDue > 0 ? `audits the ${stats.accountsDue} account${stats.accountsDue === 1 ? "" : "s"} that are due, all at once` : "all due accounts have been audited — open the inbox next"], ["02", "Open the inbox", "read each finding with its evidence and dollar impact"], ["03", "Approve one", "the spend-cap gate refuses an unsafe auto-apply"]] as [n, title, sub] (n)}
+          <li class="flex flex-col gap-1">
+            <span class="hud text-primary">{n}</span>
+            <span class="font-mono text-sm font-semibold">{title}</span>
+            <span class="text-base-content/55 text-xs leading-relaxed">{sub}</span>
+          </li>
+        {/each}
+      </ol>
+    </details>
   </div>
 
   <!-- the one primary action -->
