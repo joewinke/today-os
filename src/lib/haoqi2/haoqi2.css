@@ -1,0 +1,132 @@
+/* /haoqi2 — keyframes + motion utilities for "the machine" cut.
+   @keyframes must live in a real stylesheet, not a component <style> (Svelte's
+   vitePreprocess trips on them). Everything here is transform/opacity only and
+   is fully disabled under prefers-reduced-motion. Scoped under .hq2 so it can
+   never leak into other routes. */
+
+/* ── hero load choreography: headline lines rise, drafting lines draw ── */
+@media (prefers-reduced-motion: no-preference) {
+  .hq2 .hq2-rise {
+    animation: hq2-rise 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--d, 0) * 1ms);
+  }
+  @keyframes hq2-rise {
+    from {
+      transform: translateY(108%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .hq2 .hq2-draw {
+    animation: hq2-draw 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--d, 0) * 1ms);
+  }
+  @keyframes hq2-draw {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  .hq2 .hq2-draw--v {
+    animation-name: hq2-draw-v;
+  }
+  @keyframes hq2-draw-v {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  .hq2 .hq2-fade {
+    animation: hq2-fade 520ms ease-out both;
+    animation-delay: calc(var(--d, 0) * 1ms);
+  }
+  @keyframes hq2-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/* ── live indicator dot ── */
+@media (prefers-reduced-motion: no-preference) {
+  .hq2 .hq2-livedot {
+    animation: hq2-pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes hq2-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.25;
+    }
+  }
+}
+
+/* ── scroll cue: a nudging arrow ── */
+@media (prefers-reduced-motion: no-preference) {
+  .hq2 .hq2-nudge {
+    animation: hq2-nudge 2.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  }
+  @keyframes hq2-nudge {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(6px);
+    }
+  }
+}
+
+/* ── polished-gem specular glint: a slow sheen wipe over the final state ── */
+@media (prefers-reduced-motion: no-preference) {
+  .hq2 .hq2-glint::after {
+    animation: hq2-glint 3.4s ease-in-out infinite;
+  }
+  @keyframes hq2-glint {
+    0%,
+    58%,
+    100% {
+      transform: translateX(-130%) skewX(-20deg);
+      opacity: 0;
+    }
+    70% {
+      opacity: 0.9;
+    }
+    86% {
+      transform: translateX(230%) skewX(-20deg);
+      opacity: 0;
+    }
+  }
+}
+
+/* ── machine idle hum: the active-station scan line breathes ── */
+@media (prefers-reduced-motion: no-preference) {
+  .hq2 .hq2-scan {
+    animation: hq2-hum 1.6s ease-in-out infinite;
+  }
+  @keyframes hq2-hum {
+    0%,
+    100% {
+      opacity: calc(var(--a, 0) * 0.9);
+    }
+    50% {
+      opacity: calc(var(--a, 0) * 0.55);
+    }
+  }
+}
+
+/* Reduced motion: entrance utilities resolve to their final frame (the
+   animations above are gated on no-preference, so nothing plays; elements
+   keep their default, fully-visible styles). */
