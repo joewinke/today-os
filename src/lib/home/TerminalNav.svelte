@@ -15,7 +15,7 @@
         goto("/funnel-score")
       } else if (e.key === "/") {
         e.preventDefault()
-        goto("/admin")
+        goto("/os")
       }
     }
     window.addEventListener("keydown", onKey)
@@ -25,18 +25,11 @@
 
 <header class="border-line bg-base-100/90 fixed inset-x-0 top-0 z-50 border-b">
   <nav class="flex h-12 items-center justify-between px-6 sm:px-10" aria-label="Primary">
-    <a href="/" class="hud text-base-content hover:text-base-content">
-      IT&rsquo;S TODAY MEDIA
-    </a>
-    <div class="flex items-center gap-4 sm:gap-7">
-      <a href="/#work" class="hud hover:text-base-content hidden sm:inline">WORK</a>
-      <a href="/#contact" class="hud hover:text-base-content hidden sm:inline">CONTACT</a>
-      <a href="/studio" class="hud hover:text-base-content hidden md:inline">STUDIO</a>
-      <a href="/funnel-score" class="hud hover:text-base-content">
-        FUNNEL<span class="text-base-content/60">[F]</span>
-      </a>
-      <a href="/admin" class="hud hover:text-base-content">
-        OS<span class="text-base-content/60">[/]</span>
+    <a href="/" class="hud text-base-content hover:text-base-content"> TODAY OS </a>
+    <div class="flex items-center gap-5 sm:gap-7">
+      <a href="/readme" class="hud hover:text-base-content">README</a>
+      <a href="/os" class="hud text-primary hover:text-base-content">
+        ENTER TODAY OS<span class="text-base-content/50">[/]</span>
       </a>
     </div>
   </nav>
