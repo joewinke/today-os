@@ -282,6 +282,26 @@ export function resetTheme(): void {
   sessionThemes.delete(currentSession())
 }
 
+/**
+ * The close-hinge: when a deal closes, RUN operates that client's accounts, so
+ * point the active theme at them. Keeps the current theme's campaign/keyword
+ * STRUCTURE (peers share the scanned business's market) and just swaps the
+ * business identity — Ad Ops re-themes to the new client on its next audit.
+ */
+export function setThemeFromProspect(p: { company: string; city?: string; vertical?: string; offer?: string }): void {
+  const cur = getActiveTheme()
+  const vertical: Vertical = p.vertical && VERTICALS.includes(p.vertical as Vertical) ? (p.vertical as Vertical) : cur.vertical
+  sessionThemes.set(currentSession(), {
+    ...cur,
+    source: "scanned",
+    scannedAt: Date.now(),
+    business: clamp(p.company || cur.business, CAP.business),
+    city: p.city ? clamp(p.city, CAP.city) : cur.city,
+    vertical,
+    offer: p.offer ? clamp(p.offer, CAP.offer) : cur.offer,
+  })
+}
+
 /** Length-cap + enum-guard a theme (defense against untrusted scraped input). */
 export function sanitizeTheme(t: DemoTheme): DemoTheme {
   const vertical: Vertical = VERTICALS.includes(t.vertical) ? t.vertical : "performance marketing"

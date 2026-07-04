@@ -129,3 +129,46 @@ export function addProspectFromScan(input: { company: string; city: string; offe
   log("scan", `Scanned ${p.company}${p.score != null ? ` — scored ${p.score}/100` : ""}`)
   return p
 }
+
+export function getProspect(id: string): Prospect | null {
+  return getState().prospects.find((p) => p.id === id) ?? null
+}
+
+/**
+ * Move a prospect to a stage and fire the side effects that make the OS feel
+ * alive: contacting bumps pitches-sent, booking a meeting bumps meetings, and
+ * CLOSING-WON is THE HINGE — it spawns the client's ad accounts into RUN
+ * (accounts-under-management ticks up; the caller themes RUN to this client).
+ * Returns the prospect, or null if unknown / already there.
+ */
+export function moveProspect(id: string, stage: PipelineStage): Prospect | null {
+  const s = getState()
+  const p = s.prospects.find((x) => x.id === id)
+  if (!p) return null
+  const was = p.stage
+  if (was === stage) return p
+  p.stage = stage
+
+  if (stage === "contacted") {
+    s.pitchesSent += 1
+    log("pitch", `Pitch sent to ${p.company}`)
+  } else if (stage === "meeting") {
+    s.meetingsBooked += 1
+    log("meeting", `Meeting booked with ${p.company}`)
+  } else if (stage === "won" && !p.spawnedAccounts) {
+    p.spawnedAccounts = true
+    s.accountsManaged += 1
+    log("won", `Closed-won: ${p.company} — spawned their ad accounts into RUN`)
+  }
+  return p
+}
+
+/** Closed-won convenience — the hinge action. */
+export function closeWon(id: string): Prospect | null {
+  return moveProspect(id, "won")
+}
+
+/** Clients whose accounts are live in RUN (spawned by a close). */
+export function getManagedClients(): Prospect[] {
+  return getState().prospects.filter((p) => p.spawnedAccounts)
+}
