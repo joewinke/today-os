@@ -145,6 +145,12 @@
       // Each particle's fully-refined color; the displayed color is this dimmed
       // by how far the particle has been refined (see placeParticle).
       const baseCol = new Float32Array(COUNT * 3)
+      // Each particle's resting spot in the collected mound. Distributed as a
+      // real pile — dense wide base, sparse peak (cone-density bias on height +
+      // uniform-by-area radius), so it reads as an accumulating heap.
+      const pileX = new Float32Array(COUNT)
+      const pileY = new Float32Array(COUNT)
+      const pileZ = new Float32Array(COUNT)
       const dummy = new THREE.Object3D()
       const tint = new THREE.Color()
 
@@ -154,6 +160,15 @@
         speeds[i] = 0.05 + Math.random() * 0.09
         jitters[i] = (Math.random() - 0.5) * 0.5
         scales[i] = 0.55 + Math.random() * 0.9
+        // Pile: height biased toward the base (density ∝ (1-h)²), radius tapering
+        // to a point at the peak and uniform by area at each level.
+        const hN = 1 - Math.cbrt(Math.random())
+        const rMax = BASIN_R * (1 - hN) * 0.96
+        const pr = rMax * Math.sqrt(Math.random())
+        const pa = Math.random() * Math.PI * 2
+        pileX[i] = pr * Math.cos(pa)
+        pileZ[i] = pr * Math.sin(pa)
+        pileY[i] = Y_FLOOR + hN * DOME
         // mostly cobalt gems (varied depth) + a few chrome sparkles
         if (Math.random() < 0.18) {
           tint.copy(chrome)
@@ -169,7 +184,7 @@
 
       function placeParticle(i: number) {
         const t = ts[i]
-        let r: number, y: number
+        let px: number, py: number, pz: number
         // polish: 0 = rough raw stone (intake), 1 = fully polished fine stone (out)
         let polish: number
         if (t < T_INTAKE) {
@@ -177,28 +192,35 @@
           // spiral inward into the mouth. Still rough (unpolished).
           const ti = t / T_INTAKE
           const spread = 1 + 0.7 * (1 - ti)
-          r = MOUTH * spread + jitters[i] * 1.3 * (1 - ti)
-          y = TOP + INTAKE_H * (1 - ti)
+          const r = MOUTH * spread + jitters[i] * 1.3 * (1 - ti)
+          px = r * Math.cos(thetas[i])
+          pz = r * Math.sin(thetas[i])
+          py = TOP + INTAKE_H * (1 - ti)
           polish = 0
         } else if (t < T_OUT) {
           // Spun + polished down the funnel: mouth → throat.
           const tn = (t - T_INTAKE) / (T_OUT - T_INTAKE)
           const shrink = Math.pow(1 - tn, 1.8)
-          r = THROAT + (MOUTH - THROAT) * shrink + jitters[i] * (1 - tn)
-          y = TOP - SPAN * tn
+          const r = THROAT + (MOUTH - THROAT) * shrink + jitters[i] * (1 - tn)
+          px = r * Math.cos(thetas[i])
+          pz = r * Math.sin(thetas[i])
+          py = TOP - SPAN * tn
           polish = tn
         } else {
-          // Resolution: fine stones pour out of the throat and SETTLE into a
-          // collected mound in the basin — the refined output accumulating.
+          // Resolution: fine stones pour out of the throat and SETTLE into their
+          // spot in the collected mound — a real pile, dense base to sparse peak.
           const to = (t - T_OUT) / (1 - T_OUT) // 0→1
           const e = to * to // ease: pour fast, settle slow
-          const restR = 0.1 + BASIN_R * Math.abs(jitters[i]) * 3.6 // resting radius in basin
-          const domeY = Y_FLOOR + DOME * Math.max(0, 1 - (restR / BASIN_R) ** 2) // dome heap
-          r = THROAT + (restR - THROAT) * e + 0.3 * Math.sin(to * Math.PI) * (1 - e)
-          y = TOP - SPAN + (domeY - (TOP - SPAN)) * e
+          const fanR = THROAT + 0.3 * Math.sin(to * Math.PI) * (1 - e)
+          const tx = fanR * Math.cos(thetas[i])
+          const tz = fanR * Math.sin(thetas[i])
+          const ty = TOP - SPAN
+          px = tx + (pileX[i] - tx) * e
+          py = ty + (pileY[i] - ty) * e
+          pz = tz + (pileZ[i] - tz) * e
           polish = 1
         }
-        dummy.position.set(r * Math.cos(thetas[i]), y, r * Math.sin(thetas[i]))
+        dummy.position.set(px, py, pz)
 
         // Rough → fine: big lumpy asymmetric chunks that tumble, shrinking into
         // small symmetric faceted stones as they polish.
@@ -232,9 +254,10 @@
 
       function stepParticles(dt: number) {
         for (let i = 0; i < COUNT; i++) {
-          // Linger in the output phase so the collected mound actually accumulates.
+          // Linger in the output phase so the collected mound actually accumulates
+          // (more particles at rest in the pile at any moment = a fuller heap).
           let adv = speeds[i] * (0.5 + 1.6 * ts[i])
-          if (ts[i] >= T_OUT) adv *= 0.35
+          if (ts[i] >= T_OUT) adv *= 0.22
           ts[i] += dt * adv
           if (ts[i] > 1) {
             ts[i] -= 1
