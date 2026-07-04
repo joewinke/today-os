@@ -1,0 +1,126 @@
+/* /haoqi7 — keyframes + motion utilities for "the film" cut.
+   @keyframes must live in a real stylesheet, not a component <style> (Svelte's
+   vitePreprocess trips on them). Everything here is transform/opacity only and
+   is fully gated on prefers-reduced-motion: no-preference — under reduced
+   motion nothing plays and elements keep their default styles (the countdown
+   leader defaults to hidden; the title card defaults to visible). Scoped under
+   .hq7 so it can never leak into other routes. */
+
+/* ── the academy leader: an ink panel that covers the hero while the
+      countdown plays (5·4·3·2), then fades to reveal the title card.
+      Default opacity is 0 (see the page styles), so under reduced motion the
+      leader simply never appears. ── */
+@media (prefers-reduced-motion: no-preference) {
+  .hq7 .hq7-leader {
+    animation: hq7-leaderhold 2680ms ease-out both;
+  }
+  @keyframes hq7-leaderhold {
+    0% {
+      opacity: 1;
+    }
+    84% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  /* countdown numbers: each owns a 560ms window via --k (0..3) */
+  .hq7 .hq7-num {
+    animation: hq7-num 560ms linear both;
+    animation-delay: calc(var(--k, 0) * 560ms);
+  }
+  @keyframes hq7-num {
+    0% {
+      opacity: 0;
+    }
+    9% {
+      opacity: 1;
+    }
+    91% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  /* the leader's sweep hand: one revolution per number */
+  .hq7 .hq7-sweep {
+    animation: hq7-sweep 560ms linear 4;
+  }
+  @keyframes hq7-sweep {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}
+
+/* ── title-card load choreography: headline lines rise after the leader ── */
+@media (prefers-reduced-motion: no-preference) {
+  .hq7 .hq7-rise {
+    animation: hq7-rise 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--d, 0) * 1ms);
+  }
+  @keyframes hq7-rise {
+    from {
+      transform: translateY(108%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .hq7 .hq7-fade {
+    animation: hq7-fade 520ms ease-out both;
+    animation-delay: calc(var(--d, 0) * 1ms);
+  }
+  @keyframes hq7-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/* ── live indicator dot in the letterbox bars ── */
+@media (prefers-reduced-motion: no-preference) {
+  .hq7 .hq7-livedot {
+    animation: hq7-pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes hq7-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.25;
+    }
+  }
+}
+
+/* ── scroll cue: a nudging arrow in the bottom bar ── */
+@media (prefers-reduced-motion: no-preference) {
+  .hq7 .hq7-nudge {
+    animation: hq7-nudge 2.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  }
+  @keyframes hq7-nudge {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(6px);
+    }
+  }
+}
+
+/* Reduced motion: everything above is gated on no-preference, so nothing
+   plays; elements keep their default, fully-visible styles (and the leader
+   keeps its default, fully-hidden style). */
