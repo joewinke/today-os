@@ -1,0 +1,98 @@
+/* /haoqi5 — keyframes + motion utilities for "the ledger" cut.
+   @keyframes must live in a real stylesheet, not a component <style> (Svelte's
+   vitePreprocess trips on them). Everything here is transform/opacity only and
+   is fully disabled under prefers-reduced-motion. Scoped under .hq5 so it can
+   never leak into other routes. */
+
+/* ── hero load choreography: headline lines rise, rules draw, blocks fade ── */
+@media (prefers-reduced-motion: no-preference) {
+  .hq5 .hq5-rise {
+    animation: hq5-rise 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--d, 0) * 1ms);
+  }
+  @keyframes hq5-rise {
+    from {
+      transform: translateY(108%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .hq5 .hq5-draw {
+    animation: hq5-draw 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--d, 0) * 1ms);
+  }
+  @keyframes hq5-draw {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  .hq5 .hq5-fade {
+    animation: hq5-fade 520ms ease-out both;
+    animation-delay: calc(var(--d, 0) * 1ms);
+  }
+  @keyframes hq5-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/* ── live indicator dot ── */
+@media (prefers-reduced-motion: no-preference) {
+  .hq5 .hq5-livedot {
+    animation: hq5-pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes hq5-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.25;
+    }
+  }
+}
+
+/* ── scroll cue: a nudging arrow ── */
+@media (prefers-reduced-motion: no-preference) {
+  .hq5 .hq5-nudge {
+    animation: hq5-nudge 2.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  }
+  @keyframes hq5-nudge {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(6px);
+    }
+  }
+}
+
+/* ── the carry caret: a bookkeeper's tick blinking beside the running total ── */
+@media (prefers-reduced-motion: no-preference) {
+  .hq5 .hq5-caret {
+    animation: hq5-caret 1.1s steps(2, jump-none) infinite;
+  }
+  @keyframes hq5-caret {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+}
+
+/* Reduced motion: the entrance utilities above are gated on no-preference, so
+   nothing plays; elements keep their default, fully-visible styles. */
