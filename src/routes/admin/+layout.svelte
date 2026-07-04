@@ -53,7 +53,7 @@
   <footer class="border-t" style="border-color: var(--color-line)">
     <div class="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-3 sm:px-8">
       <p class="hud">DISCOVER &rarr; SNAPSHOT &rarr; DIFF &rarr; RECOMMEND &rarr; APPROVE &rarr; APPLY</p>
-      <span class="hud text-base-content/40" aria-hidden="true">STOP 2 · AD OPS</span>
+      <span class="hud text-base-content/40" aria-hidden="true">STOP 3 · OPERATE</span>
     </div>
   </footer>
 </div>

@@ -40,6 +40,8 @@
   })
 
   const report = $derived(form && "report" in form ? form.report : null)
+  // The prospect queue — peer advertisers in the scanned business's market.
+  const market = $derived(form && "market" in form ? form.market : null)
 
   const statusText: Record<CheckStatus, string> = {
     pass: "text-success",
@@ -230,36 +232,63 @@
             </p>
           {/if}
 
-          <!-- ==== HANDOFF: the score is the diagnosis; the OS is the treatment ==== -->
+          <!-- ==== HANDOFF: the score is a door-opener → hunt the whole market ==== -->
           <div class="border-line mt-14 border-t pt-10">
-            <span class="hud text-primary">TOUR STOP 01 COMPLETE · NEXT &rarr; 02 / THE CONSOLE</span>
+            <span class="hud text-primary">STOP 01 · SCAN COMPLETE</span>
             <h2 class="statement mt-4 mb-3 text-2xl sm:text-3xl">
-              The score is the diagnosis.<br />The OS is the treatment.
+              That score is your door-opener.<br />Now &mdash; the rest of the market.
             </h2>
-            <p class="text-base-content/70 mb-8 max-w-xl text-sm leading-relaxed">
+            <p class="text-base-content/70 mb-6 max-w-xl text-sm leading-relaxed">
               You just surfaced {report.fixFirst.length}
-              {report.fixFirst.length === 1 ? "leak" : "leaks"} on one page. The console does this across
-              every ad account — Google, Meta, Taboola, TikTok — on a cadence, and proposes each fix
-              with the evidence, behind a human approval gate. That is the job.
+              {report.fixFirst.length === 1 ? "leak" : "leaks"} on
+              {market?.business ? ` ${market.business}` : " one site"}. Here are more advertisers in the
+              same market with the same problem &mdash; your prospect queue.
             </p>
 
-            <!-- one unmistakable next action -->
+            {#if market && market.peers.length}
+              <div class="mb-8 border border-[var(--color-line)]">
+                <div class="hud flex items-center justify-between border-b border-[var(--color-line)] px-3 py-2">
+                  <span>YOUR MARKET &mdash; {market.peers.length} PROSPECTS</span>
+                  <span class="text-base-content/40">{market.vertical}</span>
+                </div>
+                <ul class="divide-y divide-[var(--color-line)]">
+                  {#each market.peers as peer (peer.company)}
+                    <li class="flex items-center justify-between gap-3 px-3 py-2.5">
+                      <div class="min-w-0">
+                        <p class="truncate text-sm text-base-content">{peer.company}</p>
+                        <p class="hud text-base-content/50 normal-case">{peer.city} · {peer.offer}</p>
+                      </div>
+                      <a
+                        href="/studio/batch"
+                        class="hud text-primary transition-transform hover:translate-x-1 whitespace-nowrap"
+                        >QUEUE &rarr;</a
+                      >
+                    </li>
+                  {/each}
+                </ul>
+                <p class="hud border-t border-[var(--color-line)] px-3 py-1.5 text-base-content/40">
+                  SAMPLE ADVERTISERS IN THIS MARKET · ILLUSTRATIVE OFFERS
+                </p>
+              </div>
+            {/if}
+
+            <!-- one unmistakable next action: pitch the market -->
             <a
-              href="/admin"
+              href="/studio"
               class="btn btn-primary btn-lg group h-auto min-h-0 flex-col items-start gap-1 rounded-none px-8 py-5 text-left normal-case"
             >
               <span class="font-mono text-sm font-bold tracking-[0.08em] uppercase">
-                Open the Live Console
+                Pitch the Market
                 <span class="inline-block transition-transform group-hover:translate-x-1">&rarr;</span>
               </span>
               <span class="text-primary-content/80 font-mono text-[11px] tracking-wide normal-case">
-                Run a sweep · approve a fix · watch the gate refuse an unsafe one
+                Record one outreach video · personalize it per prospect
               </span>
             </a>
 
             <p class="mt-6">
-              <a href="/studio" class="hud text-base-content/60 hover:text-primary transition-colors">
-                OR — TOUR 03 &rarr; GENERATE THE MATCHING CREATIVE IN THE STUDIO
+              <a href="/admin" class="hud text-base-content/60 hover:text-primary transition-colors">
+                OR &mdash; SKIP AHEAD: WHEN THEY SAY YES, YOU RUN THEIR ADS &rarr;
               </a>
             </p>
           </div>

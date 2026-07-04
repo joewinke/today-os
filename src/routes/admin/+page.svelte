@@ -65,7 +65,7 @@
 
 <div class="flex flex-wrap items-end justify-between gap-3">
   <div>
-    <p class="hud mb-2">COMMAND CENTER</p>
+    <p class="hud mb-2">STOP 3 · OPERATE · WHEN THEY SAY YES, YOU RUN THEIR ADS</p>
     <h1 class="statement text-4xl sm:text-5xl">Ad Ops</h1>
   </div>
   {#if theme.source === "scanned" && theme.domain}

@@ -70,6 +70,25 @@ const NEUTRAL_FLUBS = [
   "Hold on, restarting that take.",
 ]
 
+/**
+ * The OUTREACH pitch — the agency pitching a prospect, one shoot re-rendered per
+ * lead. Tokenized with {{company}} / {{city}} / {{first_name}} / {{offer}}, so
+ * the same footage personalizes to the scanned business (row 1) and every peer
+ * in the market. This is the single master for /studio + /studio/batch in the
+ * hunt → PITCH → operate arc (it supersedes the per-business consumer ad script).
+ *
+ * Leading "{{first_name}}, " is stripped + re-capitalized for nameless prospects
+ * (see edl.ts stripNamelessSalutation), so no "there" fallback literal renders.
+ */
+export const PITCH_SCRIPT: ScriptBeat[] = [
+  { beat: "hook", text: "I ran {{company}}'s site through our funnel scanner — and it's leaking money.", caption: "I SCANNED {{company}}" },
+  { beat: "problem", text: "You're paying for the clicks, but most of them bounce before they ever convert.", caption: "YOUR FUNNEL LEAKS" },
+  { beat: "agitate", text: "Every wasted click is budget gone — and a customer a competitor just picked up instead.", caption: "BUDGET WALKS" },
+  { beat: "proof", text: "We buy media across Google, Meta, Taboola and TikTok and rebuild the funnel around what actually converts.", caption: "GOOGLE · META · TABOOLA · TIKTOK" },
+  { beat: "offer", text: "I'll send {{company}} a free audit — the ten things costing you customers, ranked.", caption: "FREE AUDIT" },
+  { beat: "cta", text: "{{first_name}}, grab fifteen minutes with me this week and I'll walk you through the fixes.", caption: "BOOK 15 MIN →" },
+]
+
 export function applyThemeScript(
   segs: Seg[],
   script: ScriptBeat[] | null | undefined,

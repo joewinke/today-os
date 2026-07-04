@@ -2,9 +2,21 @@ import { fail } from "@sveltejs/kit"
 import type { Actions } from "./$types"
 import { analyzeUrl, type FunnelReport } from "$lib/home/funnelChecks"
 import { ITSTODAY_SNAPSHOT, SNAPSHOT_HOSTS, hostKey } from "$lib/home/snapshots"
-import { domainOf, activateCached, setScannedTheme, resetTheme } from "$lib/adops/theme"
+import { domainOf, activateCached, setScannedTheme, resetTheme, getActiveTheme } from "$lib/adops/theme"
 import { rethemeProposed } from "$lib/adops/store"
 import { buildThemeFromScan } from "$lib/server/scanTheme"
+
+/**
+ * The prospect queue for the market map: the active theme's peers (same market
+ * as the scanned business). For the pre-seeded itstoday.org this is set
+ * synchronously by activateCached, so it's ready in this same response; for a
+ * fresh scan the theme is still building, so the current theme's peers stand in
+ * (the honest fallback). No LLM is awaited here — first paint stays instant.
+ */
+function marketFromActiveTheme() {
+  const t = getActiveTheme()
+  return { business: t.business, vertical: t.vertical, peers: t.peers }
+}
 
 /**
  * Fire-and-forget: theme the whole demo to the scanned site. Runs AFTER the
@@ -49,13 +61,13 @@ export const actions: Actions = {
       ])
       const report = raced ?? ITSTODAY_SNAPSHOT
       themeFromScan(report, url)
-      return { report, url }
+      return { report, url, market: marketFromActiveTheme() }
     }
 
     try {
       const report = await analyzeUrl(url)
       themeFromScan(report, url)
-      return { report, url }
+      return { report, url, market: marketFromActiveTheme() }
     } catch (e) {
       let message = "Could not reach that URL."
       if (e instanceof TypeError && /URL/i.test(String(e.message))) {

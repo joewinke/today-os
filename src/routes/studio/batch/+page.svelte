@@ -9,7 +9,7 @@
     serializeEdl,
     tokenParts,
   } from "$lib/studio/edl"
-  import { applyThemeScript, CAM_META, LEADS, fixtureSegs, leadFromTheme } from "$lib/studio/fixtures"
+  import { applyThemeScript, CAM_META, LEADS, PITCH_SCRIPT, fixtureSegs, leadFromTheme } from "$lib/studio/fixtures"
   import EdlPanel from "$lib/studio/EdlPanel.svelte"
   import type { PageServerData } from "./$types"
 
@@ -27,16 +27,29 @@
     })
   }
 
-  // Themed script (if a scan set one) overlaid on the fixture — {{city}} is left
-  // in place so per-lead token substitution resolves it per row.
-  const master = untrack(() => applyThemeScript(fixtureSegs(), data.theme.script))
+  // The outreach pitch overlaid on the fixture — {{company}}/{{city}}/{{first_name}}
+  // left in place so per-prospect token substitution resolves them per row.
+  const master = untrack(() => applyThemeScript(fixtureSegs(), PITCH_SCRIPT))
   const keptMaster = master.filter((s) => s.keep)
 
-  // When scanned, the scanned business is row 1 (preselected) — the payoff:
-  // a judge who scanned itstoday.org lands on their own personalized variant.
-  const leads = $derived(
-    theme.source === "scanned" ? [leadFromTheme(theme), ...LEADS] : LEADS,
+  // The market: peer advertisers in the same vertical become the batch rows.
+  // A peer {company, city, offer} → a Lead (offer upper-cased to match the CSV
+  // style; no per-lead first name — these are illustrative sample advertisers).
+  const peerLeads = $derived(
+    theme.peers.map((p) => ({
+      company: p.company,
+      city: p.city,
+      vertical: theme.vertical,
+      first_name: "",
+      offer: p.offer.toUpperCase(),
+    })),
   )
+  // ONE SITE IN → THE WHOLE MARKET OUT. When scanned, row 1 is the scanned
+  // business (the protagonist), followed by its market peers — the scale-out
+  // payoff. Default (no scan) shows the vertical's sample advertisers. If a scan
+  // yielded no peers, fall back to the fixture leads so the row never runs thin.
+  const market = $derived(peerLeads.length ? peerLeads : LEADS)
+  const leads = $derived(theme.source === "scanned" ? [leadFromTheme(theme), ...market] : market)
 
   let selected = $state(0)
   const lead = $derived(leads[selected])
@@ -53,7 +66,7 @@
   <div class="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 lg:px-8">
     <header class="hud flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-line)] pb-3">
       <span>TODAY OS · STUDIO / BATCH-01</span>
-      <span class="text-base-content/40" aria-hidden="true">STOP 3 · PERSONALIZE</span>
+      <span class="text-base-content/40" aria-hidden="true">STOP 2 · OUTREACH QUEUE</span>
     </header>
 
     <section>
@@ -65,11 +78,12 @@
         </p>
       {/if}
       <h1 class="statement tracking-in-expand text-4xl text-base-content sm:text-6xl">
-        One shoot.<br />N variants.
+        Your market: {leads.length} advertisers.<br />One shoot.
       </h1>
       <p class="hud mt-3 max-w-2xl normal-case">
-        The video CRM: pick a lead, and the same footage re-renders with
-        {"{{company}} {{city}} {{offer}}"} tokens substituted — script, captions, and the GEN segments.
+        The outreach queue. One pitch, re-rendered per prospect — the same footage swaps
+        {"{{company}} {{city}} {{first_name}}"} across the whole market. Row 1 is the business you
+        scanned; the rest are its market peers.
       </p>
     </section>
 
@@ -77,15 +91,13 @@
       <!-- ── Leads table ─────────────────────────────────────────────── -->
       <section class="border border-[var(--color-line)] bg-base-200" aria-label="Leads">
         <div class="hud flex items-center justify-between border-b border-[var(--color-line)] px-3 py-2">
-          <span>LEADS.CSV — {leads.length} ROWS</span>
+          <span>PROSPECTS.CSV — {leads.length} ROWS</span>
           <span class="tabular-nums">VARIANT {selected + 1}/{leads.length}</span>
         </div>
-        {#if theme.source === "scanned" && theme.vertical !== "home services"}
-          <!-- clarify the disconnect: only row 1 is the scan; the rest are fixture samples -->
-          <p class="hud border-b border-[var(--color-line)] px-3 py-1.5 text-base-content/50">
-            ROW 1 = YOUR SCAN · REST ARE SAMPLE HOME-SERVICES LEADS
-          </p>
-        {/if}
+        <!-- honest seam: row 1 is the scan; the peers are illustrative sample advertisers -->
+        <p class="hud border-b border-[var(--color-line)] px-3 py-1.5 text-base-content/50 normal-case">
+          {#if theme.source === "scanned"}Row 1 = your scan · {/if}peers are sample advertisers in this market — illustrative offers
+        </p>
         <div class="overflow-x-auto">
           <table class="w-full border-collapse text-left">
             <thead>
@@ -182,26 +194,29 @@
       </div>
     </div>
 
-    <!-- tour complete: batch is the studio's last act; finish at the README (stop 04) -->
+    <p class="hud mt-6 border border-[var(--color-line)] bg-base-200 px-3 py-2 normal-case">
+      SEND NOTE — in production, SEND drops each variant into your email/CRM outreach sequence
+      (Instantly, Smartlead, HubSpot). The sender integration is out of scope for this demo; the
+      personalization + queue is the point.
+    </p>
+
+    <!-- tour continuation: outreach done → when they say yes, you operate their ads (stop 03) -->
     <div class="mt-6 border-t border-[var(--color-line)] pt-10">
-      <span class="hud text-primary">TOUR STOP 03 · COMPLETE · LAST STOP &rarr; 04</span>
+      <span class="hud text-primary">STOP 02 · OUTREACH — QUEUED</span>
       <h2 class="statement mt-4 mb-3 text-2xl text-base-content sm:text-3xl">
-        That&rsquo;s the system.<br />Here&rsquo;s the thinking.
+        You&rsquo;ve pitched the market.<br />When they say yes &mdash; you run their ads.
       </h2>
       <p class="text-base-content/70 mb-8 max-w-xl text-sm leading-relaxed">
-        You&rsquo;ve run the scan, worked the console, and edited the creative. The README answers
-        the three questions the contest asks &mdash; what it does, why this one, and what I&rsquo;d
-        build next with the keys.
+        Outreach lands a client. Then the real work: this is the console that operates their ad
+        accounts &mdash; audits every campaign on a cadence and proposes each fix behind a human
+        approval gate. That&rsquo;s the engine the pitch was selling.
       </p>
       <div class="flex flex-wrap items-center gap-5">
         <a
-          href="/readme"
+          href="/admin"
           class="btn btn-primary btn-lg rounded-none px-8 font-mono text-sm tracking-[0.08em] uppercase"
         >
-          Read the Thinking (README) &rarr;
-        </a>
-        <a href="/#begin" class="hud text-base-content/60 hover:text-primary transition-colors">
-          OR BACK TO THE START &uarr;
+          Operate Their Accounts &rarr;
         </a>
       </div>
     </div>

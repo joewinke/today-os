@@ -44,6 +44,7 @@ export async function buildThemeFromScan(
     '  "keywords": string[8]   // search keyword phrases someone would type, each <= 5 words',
     '  "headlines": string[8]  // ad headlines, each <= 8 words',
     '  "script": [ { "beat": one of HOOK|PROBLEM|AGITATE|PROOF|OFFER|CTA, "text": string (<= 24 words), "caption": string (<= 5 words) } ] // exactly 6, in that beat order',
+    '  "peers": [ { "company": string (<= 5 words), "city": string (1-2 words), "offer": string (<= 6 words) } ] // exactly 5 OTHER advertisers in the SAME market/vertical as this business (realistic names + plausible offers; these are illustrative sample advertisers, not real clients)',
     "}",
     'Use the token {{city}} inside the OFFER beat text where the city fits.',
   ].join("\n")
@@ -88,6 +89,16 @@ function parseThemeJson(text: string): DemoTheme | null {
           }))
       : []
     if (!o.business || !o.vertical) return null
+    const peers = Array.isArray(o.peers)
+      ? o.peers
+          .filter((p): p is Record<string, unknown> => !!p && typeof p === "object")
+          .map((p) => ({
+            company: String(p.company ?? ""),
+            city: String(p.city ?? ""),
+            offer: String(p.offer ?? ""),
+          }))
+          .filter((p) => p.company)
+      : []
     return {
       source: "scanned",
       business: String(o.business),
@@ -101,6 +112,7 @@ function parseThemeJson(text: string): DemoTheme | null {
       keywords: arr(o.keywords),
       headlines: arr(o.headlines),
       script,
+      peers,
     }
   } catch {
     return null

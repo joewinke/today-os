@@ -190,22 +190,22 @@
   </section>
 {/each}
 
-<!-- tour continuation: the console (stop 02) hands off to the studio (stop 03) -->
+<!-- tour continuation: operate (stop 03) done → the thinking (README) -->
 <div class="mt-16 border-t pt-10" style="border-color: var(--color-line)">
-  <span class="hud text-primary">TOUR STOP 02 · THE CONSOLE — DONE · NEXT &rarr; 03</span>
+  <span class="hud text-primary">STOP 03 · OPERATE — GATED</span>
   <h2 class="statement mt-4 mb-3 text-2xl sm:text-3xl">
-    You&rsquo;ve seen how it finds the money.<br />Now see how it makes the creative.
+    Find them. Pitch them. Win them.<br />Then run their accounts &mdash; safely.
   </h2>
   <p class="text-base-content/70 mb-8 max-w-xl text-sm leading-relaxed">
-    Some of these findings are &ldquo;the creative is fatigued &mdash; make a new one.&rdquo; That
-    hand-off is the studio: edit video like a document, generate AI b-roll from a line of script,
-    and personalize the whole ad for every lead.
+    That&rsquo;s the whole loop: a funnel score opens the door, a personalized pitch books the call,
+    and this console operates the account behind a human approval gate. The README answers the three
+    questions the contest asks &mdash; what it does, why this one, and what I&rsquo;d build next.
   </p>
   <a
-    href="/studio"
+    href="/readme"
     class="btn btn-primary btn-lg rounded-none px-10 font-mono text-sm tracking-[0.08em] uppercase"
   >
-    Enter the Studio &rarr;
+    Read the Thinking (README) &rarr;
   </a>
 </div>
 

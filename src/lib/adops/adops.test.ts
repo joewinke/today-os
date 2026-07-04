@@ -417,6 +417,7 @@ describe("per-visitor session isolation", () => {
         keywords: ["ac repair near me"],
         headlines: ["Same-day AC repair"],
         script: [],
+        peers: [],
       })
       await runSweep()
       expect(getActiveTheme().business).toBe("Acme HVAC")

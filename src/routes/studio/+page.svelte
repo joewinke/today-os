@@ -15,6 +15,7 @@
     applyThemeScript,
     CAM_META,
     EFFECTS_BANK,
+    PITCH_SCRIPT,
     fixtureSegs,
     type EffectSuggestion,
   } from "$lib/studio/fixtures"
@@ -47,7 +48,7 @@
   // When a scan set a script, the roofing fixture's KEPT lines re-theme to it
   // (structure — timings/camera/keep/fx — is untouched); {{city}} resolves to
   // the scanned theme's city. Default (no scan) → the built-in roofing ad.
-  let segs = $state(untrack(() => applyThemeScript(fixtureSegs(), data.theme.script, { city: data.theme.city })))
+  let segs = $state(untrack(() => applyThemeScript(fixtureSegs(), PITCH_SCRIPT, { city: data.theme.city })))
 
   // Rough-cut animatic preview (watch the whole edit once)
   let previewCutOpen = $state(false)
@@ -294,7 +295,7 @@
     <!-- ── Instrument nav ─────────────────────────────────────────────── -->
     <header class="hud flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-line)] pb-3">
       <span>TODAY OS · STUDIO / EDL-01</span>
-      <span class="text-base-content/40" aria-hidden="true">STOP 3 · CREATIVE</span>
+      <span class="text-base-content/40" aria-hidden="true">STOP 2 · OUTREACH</span>
     </header>
 
     <!-- ── Statement + explainer strip ────────────────────────────────── -->
@@ -307,10 +308,11 @@
         </p>
       {/if}
       <h1 class="statement tracking-in-expand text-4xl text-base-content sm:text-6xl">
-        Edit video<br />like a document.
+        Your outreach pitch,<br />edited like a document.
       </h1>
       <p class="hud mt-3 max-w-2xl normal-case">
-        The edit is data — a plain-text EDL. Agents cut it, score it, and personalize it per lead.
+        Record one pitch — "I ran your site through our scanner." The edit is data, a plain-text EDL,
+        so agents cut it, score it, and personalize it per prospect. Next: the outreach queue.
       </p>
     </section>
 
@@ -619,22 +621,22 @@
       </div>
     </div>
 
-    <!-- tour continuation: the studio (stop 03) → personalization, then the thinking (stop 04) -->
+    <!-- tour continuation: outreach (stop 02) → the queue, then the operation -->
     <div class="mt-6 border-t border-[var(--color-line)] pt-10">
-      <span class="hud text-primary">STOP 03 · THE STUDIO — DONE</span>
+      <span class="hud text-primary">STOP 02 · OUTREACH</span>
       <h2 class="statement mt-4 mb-3 text-2xl sm:text-3xl">
-        You&rsquo;ve edited the ad.<br />Now scale it &mdash; one variant per lead.
+        One pitch recorded.<br />Now send it to the whole market.
       </h2>
       <p class="text-base-content/70 mb-8 max-w-xl text-sm leading-relaxed">
-        The edit is data, so it personalizes per lead: one shoot, a variant for every row of the
-        list. The tour rail carries you on to the README when you&rsquo;re done.
+        The edit is data, so it personalizes per prospect: one shoot, a variant for the business you
+        scanned and every peer in its market. That&rsquo;s your outreach queue.
       </p>
       <div class="flex flex-wrap items-center gap-5">
         <a
           href="/studio/batch"
           class="btn btn-primary btn-lg rounded-none px-8 font-mono text-sm tracking-[0.08em] uppercase"
         >
-          Personalize per Lead &rarr;
+          Personalize per Prospect &rarr;
         </a>
       </div>
     </div>

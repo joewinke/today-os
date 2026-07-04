@@ -18,6 +18,8 @@ export const load: PageServerLoad = async () => {
       contactName: t.contactName ?? "",
       offer: t.offer,
       script: t.script ?? null,
+      // The market: peer advertisers in the same vertical — the scale-out payoff.
+      peers: t.peers ?? [],
     },
   }
 }

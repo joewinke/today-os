@@ -29,8 +29,12 @@ export interface RailState {
   next: RailNext | null
 }
 
-/** The four milestone labels, in order — drives the rail's progress pips. */
-export const MILESTONES = ["SCORE", "GATE", "VIDEO", "README"] as const
+/**
+ * The four acts of the agency's funnel — HUNT → PITCH → OPERATE → the thinking.
+ * The demo user is the performance-marketing firm: find advertisers, pitch them
+ * with personalized video, then operate their accounts behind human gates.
+ */
+export const MILESTONES = ["SCAN", "OUTREACH", "OPERATE", "README"] as const
 
 const TOTAL = 4
 
@@ -43,22 +47,25 @@ export function railFor(path: string): RailState | null {
   const p = path.replace(/\/$/, "") || "/"
 
   if (p === "/")
-    return { n: 0, total: TOTAL, label: "BEGIN", here: "Start the tour", next: { label: "Run the scan", href: "/funnel-score" } }
+    return { n: 0, total: TOTAL, label: "BEGIN", here: "Start the tour", next: { label: "Scan a site", href: "/funnel-score" } }
 
+  // 1 · SCAN (hunt): score any site, then see the rest of its market as prospects.
   if (p.startsWith("/funnel-score"))
-    return { n: 1, total: TOTAL, label: "SCORE", here: "Scan a real site", next: { label: "Open the console", href: "/admin" } }
+    return { n: 1, total: TOTAL, label: "SCAN", here: "Score a site — then see its market", next: { label: "Pitch the market → outreach", href: "/studio" } }
 
-  if (p.startsWith("/admin/inbox"))
-    return { n: 2, total: TOTAL, label: "GATE", here: "Approve the flagged rec — watch the gate refuse it", next: { label: "To the studio", href: "/studio" } }
-
-  if (p.startsWith("/admin"))
-    return { n: 2, total: TOTAL, label: "GATE", here: "Run a sweep across the ad accounts", next: { label: "Review the findings", href: "/admin/inbox" } }
-
+  // 2 · OUTREACH (pitch): personalized pitch videos to the prospect queue.
   if (p.startsWith("/studio/batch"))
-    return { n: 3, total: TOTAL, label: "VIDEO", here: "Personalize the cut per lead", next: { label: "Read the thinking", href: "/readme" } }
+    return { n: 2, total: TOTAL, label: "OUTREACH", here: "The outreach queue — one pitch, personalized per prospect", next: { label: "When they say yes → run their ads", href: "/admin" } }
 
   if (p.startsWith("/studio"))
-    return { n: 3, total: TOTAL, label: "VIDEO", here: "Add AI b-roll to the cut", next: { label: "Personalize per lead", href: "/studio/batch" } }
+    return { n: 2, total: TOTAL, label: "OUTREACH", here: "Record one pitch video for a prospect", next: { label: "Personalize per prospect → the queue", href: "/studio/batch" } }
+
+  // 3 · OPERATE (close → run it): the audit + autonomy gate that the pitch sells.
+  if (p.startsWith("/admin/inbox"))
+    return { n: 3, total: TOTAL, label: "OPERATE", here: "Approve a change — watch the autonomy gate refuse it", next: { label: "Read the thinking", href: "/readme" } }
+
+  if (p.startsWith("/admin"))
+    return { n: 3, total: TOTAL, label: "OPERATE", here: "They said yes — audit + operate their ad accounts", next: { label: "Review the findings", href: "/admin/inbox" } }
 
   if (p.startsWith("/readme"))
     return { n: 4, total: TOTAL, label: "README", here: "The three answers the contest asks", next: null }
@@ -69,11 +76,11 @@ export function railFor(path: string): RailState | null {
 /** Free-roam INDEX targets — every surface, reachable without leaving the tour. */
 export const INDEX_LINKS: { label: string; href: string }[] = [
   { label: "Home", href: "/" },
-  { label: "1 · Funnel score", href: "/funnel-score" },
-  { label: "2 · Ad-ops console", href: "/admin" },
-  { label: "2 · Approval inbox", href: "/admin/inbox" },
-  { label: "3 · Creative studio", href: "/studio" },
-  { label: "3 · Personalize (batch)", href: "/studio/batch" },
+  { label: "1 · Scan + market", href: "/funnel-score" },
+  { label: "2 · Outreach studio", href: "/studio" },
+  { label: "2 · Outreach queue", href: "/studio/batch" },
+  { label: "3 · Ad-ops console", href: "/admin" },
+  { label: "3 · Approval inbox", href: "/admin/inbox" },
   { label: "4 · README", href: "/readme" },
 ]
 

@@ -48,6 +48,17 @@ export interface ScriptBeat {
   caption?: string
 }
 
+/**
+ * A peer advertiser in the same market as the scanned business — the "scale out"
+ * payoff (batch re-renders the ad for each). Illustrative, NOT a real client:
+ * surfaced under an honest-seam label ("sample advertisers in this market").
+ */
+export interface PeerAdvertiser {
+  company: string
+  city: string
+  offer: string
+}
+
 export interface DemoTheme {
   source: "default" | "scanned"
   /** Bare domain (cache key + provenance chip), when source === "scanned". */
@@ -73,6 +84,8 @@ export interface DemoTheme {
   headlines: string[]
   /** Optional studio ad-script overrides, matched to segments by beat. */
   script?: ScriptBeat[]
+  /** Peer advertisers in the same market — the batch "scale out" payoff. */
+  peers: PeerAdvertiser[]
 }
 
 /** Field caps so scanned labels can never overflow cards or carry an injection. */
@@ -129,6 +142,13 @@ export const HOME_SERVICES_DEFAULT: DemoTheme = {
   ],
   // No script override → the studio uses its built-in roofing fixture (already
   // home services, so default is coherent end to end).
+  peers: [
+    { company: "Summit Exteriors", city: "Aurora", offer: "free roof inspection" },
+    { company: "BlueRidge Home Pros", city: "Lakewood", offer: "$0-down window replacement" },
+    { company: "FirstLight Solar", city: "Boulder", offer: "free solar savings estimate" },
+    { company: "ClearView Baths", city: "Littleton", offer: "walk-in tub consultation" },
+    { company: "Anchor Foundation Repair", city: "Arvada", offer: "free foundation estimate" },
+  ],
 }
 
 /**
@@ -192,6 +212,13 @@ export const ITSTODAY_THEME: DemoTheme = {
     { beat: "PROOF", text: "We buy media at scale across Google, Meta, Taboola and TikTok and rebuild the funnel around what converts.", caption: "GOOGLE · META · TABOOLA · TIKTOK" },
     { beat: "OFFER", text: "Get a free funnel score in {{city}} — ten checks, one number, the fixes ranked.", caption: "FREE FUNNEL SCORE" },
     { beat: "CTA", text: "Scan your site now and see exactly where the money is leaking.", caption: "SCAN YOUR SITE →" },
+  ],
+  peers: [
+    { company: "Northbeam Performance", city: "Austin", offer: "a free funnel audit" },
+    { company: "Tidewater Media Group", city: "Norfolk", offer: "a free landing-page teardown" },
+    { company: "Meridian Growth Co.", city: "Denver", offer: "a free conversion score" },
+    { company: "Harborline Digital", city: "Tampa", offer: "a free media-buying review" },
+    { company: "Cardinal Demand Gen", city: "Charlotte", offer: "a free acquisition audit" },
   ],
 }
 
@@ -275,6 +302,11 @@ export function sanitizeTheme(t: DemoTheme): DemoTheme {
     script: (t.script ?? [])
       .slice(0, 6)
       .map((b) => ({ beat: clamp(b.beat, 16), text: clamp(b.text, CAP.script), caption: b.caption ? clamp(b.caption, 40) : undefined })),
+    peers: (t.peers ?? []).slice(0, 5).map((p) => ({
+      company: clamp(String(p.company || "an advertiser"), CAP.business),
+      city: clamp(String(p.city || ""), CAP.city),
+      offer: clamp(String(p.offer || ""), CAP.offer),
+    })),
   }
 }
 
