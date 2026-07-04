@@ -219,12 +219,18 @@
         last = now
         if (!visible) return
         rig.rotation.y += dt * 0.14
-        px += (mx - px) * 0.04
-        py += (my - py) * 0.04
-        rig.rotation.x = px * 0.07 + py * 0.05
-        camera.position.x = px * 0.55
-        camera.position.y = 2.7 - py * 0.35
-        camera.lookAt(0, -0.3, 0)
+        // Ease toward the cursor; snappier than before so the funnel visibly tracks.
+        px += (mx - px) * 0.07
+        py += (my - py) * 0.07
+        // Tilt the vortex toward the pointer and give it a little roll — the mouth
+        // now leans where you point instead of barely nudging.
+        rig.rotation.x = -py * 0.24 + px * 0.06
+        rig.rotation.z = 0.1 + px * 0.12
+        // Stronger camera parallax so lateral movement swings the whole funnel.
+        camera.position.x = px * 1.7
+        camera.position.y = 2.7 - py * 0.9
+        // Look slightly toward the cursor so the swing reads as depth, not just pan.
+        camera.lookAt(px * 0.6, -0.3 - py * 0.3, 0)
         stepParticles(dt)
         renderer.render(scene, camera)
       }

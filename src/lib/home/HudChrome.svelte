@@ -58,7 +58,7 @@
 </div>
 
 <div
-  class="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex h-9 items-center justify-between px-8"
+  class="hud-readout pointer-events-none fixed inset-x-0 bottom-0 z-50 flex h-9 items-center justify-between px-8"
   aria-hidden="true"
 >
   <span class="hud hidden md:inline">{pad4(mx)} X · {pad4(my)} Y</span>

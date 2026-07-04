@@ -126,11 +126,17 @@
     position: fixed;
     inset-inline: 0;
     bottom: 0;
-    z-index: 40;
+    /* Above the decorative HUD readout (z-50) so the tour bar owns the footer. */
+    z-index: 60;
     backdrop-filter: blur(8px);
   }
   /* Let the last of a page's normal-flow content clear the fixed bar. */
   :global(body.tour-rail-open) {
     padding-bottom: 3.25rem;
+  }
+  /* The tour rail IS the footer during the tour — retire the coordinate/scroll
+     HUD readout so the two fixed bottom bars don't pile up on each other. */
+  :global(body.tour-rail-open .hud-readout) {
+    display: none;
   }
 </style>

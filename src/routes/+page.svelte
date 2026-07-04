@@ -4,7 +4,7 @@
   import TerminalNav from "$lib/home/TerminalNav.svelte"
   import HudChrome from "$lib/home/HudChrome.svelte"
   import HeroScene from "$lib/home/HeroScene.svelte"
-  import { markTourStarted } from "$lib/tour/tour"
+  import { markTourStarted, MILESTONES } from "$lib/tour/tour"
 
   const prefersReduced =
     typeof window !== "undefined" &&
@@ -241,7 +241,7 @@
         PRODUCT.
       </p>
 
-      <div class="pointer-events-auto mt-10 flex flex-wrap items-center gap-4">
+      <div class="pointer-events-auto mt-10 flex flex-wrap items-center gap-x-6 gap-y-3">
         <button
           type="button"
           onclick={() => {
@@ -252,17 +252,21 @@
         >
           Start the Tour
         </button>
-        <span class="hud">A LIVE DEMO · ~2 MIN · WALK IT YOURSELF</span>
+        <!-- The four stops, surfaced up front so the demo structure is obvious
+             before you even start — not buried down the scroll. -->
+        <div class="hud text-base-content/45 flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span class="text-base-content/60">LIVE DEMO · ~2 MIN</span>
+          <span class="text-base-content/25" aria-hidden="true">—</span>
+          {#each MILESTONES as m, i (m)}
+            <span class="whitespace-nowrap"><span class="text-primary">0{i + 1}</span>&nbsp;{m}</span>
+            {#if i < MILESTONES.length - 1}
+              <span class="text-base-content/25" aria-hidden="true">&rarr;</span>
+            {/if}
+          {/each}
+        </div>
       </div>
     </div>
 
-    <div
-      class="hud pointer-events-none absolute inset-x-0 bottom-12 z-10 flex items-center justify-between px-6 sm:px-10 lg:px-16"
-      aria-hidden="true"
-    >
-      <span>FIG. 01 / ACQUISITION VORTEX</span>
-      <span class="hidden sm:inline">SCROLL ↓</span>
-    </div>
   </section>
 
   <!-- ===================== THE TRANSFORMATION (the foundation) ===================== -->
