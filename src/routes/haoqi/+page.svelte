@@ -267,7 +267,7 @@
     text-transform: uppercase;
     letter-spacing: -0.045em;
     line-height: 0.86;
-    font-size: clamp(3.4rem, 15vw, 13rem);
+    font-size: clamp(2.4rem, 11vw, 9.5rem);
     color: var(--hq-paper);
     transform: scaleY(1.06);
     transform-origin: left top;
@@ -382,14 +382,11 @@
     box-shadow: 0 0 16px color-mix(in oklch, var(--hq-violet) 70%, transparent);
   }
   @media (max-width: 640px) {
-    /* keep only the two least intrusive stickers on phones */
+    /* declutter on phones — the chip/gem/dot crowd the wrapped eyebrow + headline */
     .hq-sticker--gem,
-    .hq-sticker--dot {
-      display: none;
-    }
+    .hq-sticker--dot,
     .hq-sticker--chip {
-      top: 12%;
-      right: 5%;
+      display: none;
     }
   }
 
@@ -397,8 +394,8 @@
   .hq-gloss-wrap {
     position: absolute;
     z-index: 2;
-    top: 3.5rem;
-    right: 5%;
+    top: 4.5rem;
+    right: 4%;
     display: inline-block;
     overflow: hidden;
     pointer-events: none;
@@ -412,7 +409,7 @@
     font-weight: 800;
     text-transform: lowercase;
     letter-spacing: -0.04em;
-    font-size: clamp(3rem, 9vw, 7.5rem);
+    font-size: clamp(2.6rem, 7.5vw, 6rem);
     line-height: 1;
     background: linear-gradient(176deg, var(--hq-gloss-top), var(--hq-gloss-mid) 46%, var(--hq-gloss-bot));
     -webkit-background-clip: text;
@@ -627,7 +624,8 @@
     pointer-events: none;
     transform: translate(-50%, -50%) rotate(calc(-42deg * var(--sweep)))
       scale(calc(0.4 + var(--sweep) * 8));
-    opacity: calc((0.25 + var(--sweep) * 0.75) * (1 - var(--rel)));
+    /* bright as it fills, then recedes to a colored wash once the headline pins */
+    opacity: calc((0.25 + var(--sweep) * 0.75) * (1 - var(--head) * 0.72) * (1 - var(--rel)));
     filter: drop-shadow(0 0 40px color-mix(in oklch, var(--hq-cyan) 40%, transparent));
     transform-origin: center;
   }
@@ -660,6 +658,7 @@
     line-height: 0.9;
     font-size: clamp(2.6rem, 8.5vw, 8rem);
     color: var(--hq-paper);
+    text-shadow: 0 2px 34px oklch(8% 0.02 266 / 0.65);
   }
   .hq-pin-head span {
     display: block;
@@ -691,6 +690,27 @@
     .hq-sweep {
       transform: translate(-50%, -50%) rotate(calc(-38deg * var(--sweep)))
         scale(calc(0.4 + var(--sweep) * 5));
+    }
+  }
+
+  /* reduced motion: collapse the pin to a normal-flow static composition —
+     no 300vh of empty scroll, no pinning tricks */
+  @media (prefers-reduced-motion: reduce) {
+    .hq-pin {
+      height: auto;
+    }
+    .hq-stage {
+      position: static;
+      height: auto;
+      min-height: 78vh;
+      padding: 6rem 0;
+    }
+    .hq-pin-inner {
+      transform: none;
+      opacity: 1;
+    }
+    .hq-pin-head span {
+      transform: none;
     }
   }
 
