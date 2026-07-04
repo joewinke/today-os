@@ -78,6 +78,8 @@
       const cobalt = new THREE.Color().setRGB(pr, pg, pb, THREE.SRGBColorSpace)
       const chrome = new THREE.Color().setRGB(cr, cg, cb, THREE.SRGBColorSpace)
       const ink = new THREE.Color().setRGB(br, bg, bb, THREE.SRGBColorSpace)
+      // Dull raw-stone gray for the rough intake, before the funnel polishes it.
+      const rough = chrome.clone().multiplyScalar(0.34)
 
       scene.fog = new THREE.Fog(ink, 9, 17)
 
@@ -116,10 +118,11 @@
       const MOUTH = 2.7
       const THROAT = 0.16
       const TOP = 2.25
-      const SPAN = 3.7 // mouth → throat: the refining funnel
-      const T_OUT = 0.8 // last 20% of the cycle: refined output pours below the throat
-      const OUTPUT_DROP = 1.9 // how far gems fall out the bottom, into the cobalt underglow
-      const T_TRACE = 0.12 // first 12%: raw traffic streaks in as thin traces
+      const SPAN = 3.7 // mouth → throat: the polishing funnel
+      const T_INTAKE = 0.14 // first 14%: rough stones are drawn down into the mouth
+      const T_OUT = 0.82 // last 18%: polished fine stones pour out below the throat
+      const INTAKE_H = 1.9 // how far above the mouth the rough stones are drawn from
+      const OUTPUT_DROP = 1.9 // how far fine stones fall out the bottom, into the underglow
 
       const geo = new THREE.IcosahedronGeometry(0.052, 0)
       const mat = new THREE.MeshStandardMaterial({
@@ -163,41 +166,60 @@
 
       function placeParticle(i: number) {
         const t = ts[i]
-        let r: number, y: number, refine: number
-        if (t < T_OUT) {
-          // Descend + refine through the funnel: mouth → throat.
-          const tn = t / T_OUT
+        let r: number, y: number
+        // polish: 0 = rough raw stone (intake), 1 = fully polished fine stone (out)
+        let polish: number
+        if (t < T_INTAKE) {
+          // Rough stones drawn in from the very top: fall from high + scattered and
+          // spiral inward into the mouth. Still rough (unpolished).
+          const ti = t / T_INTAKE
+          const spread = 1 + 0.7 * (1 - ti)
+          r = MOUTH * spread + jitters[i] * 1.3 * (1 - ti)
+          y = TOP + INTAKE_H * (1 - ti)
+          polish = 0
+        } else if (t < T_OUT) {
+          // Spun + polished down the funnel: mouth → throat.
+          const tn = (t - T_INTAKE) / (T_OUT - T_INTAKE)
           const shrink = Math.pow(1 - tn, 1.8)
           r = THROAT + (MOUTH - THROAT) * shrink + jitters[i] * (1 - tn)
           y = TOP - SPAN * tn
-          refine = tn
+          polish = tn
         } else {
-          // Refined output: pour out of the throat, fan slightly, fall into the glow.
+          // Fine stones pour out of the throat, fan, and fall into the underglow.
           const to = (t - T_OUT) / (1 - T_OUT)
           r = THROAT + 0.34 * Math.sin(to * Math.PI) + jitters[i] * 0.12 * to
           y = TOP - SPAN - OUTPUT_DROP * to
-          refine = 1
+          polish = 1
         }
         dummy.position.set(r * Math.cos(thetas[i]), y, r * Math.sin(thetas[i]))
 
-        // Raw trace → gem: tiny + vertically streaked at the mouth, growing into a
-        // full faceted gemstone as it refines.
-        const gem = scales[i] * (0.3 + 0.95 * refine)
-        if (t < T_TRACE) {
-          const streak = 1 - t / T_TRACE
-          dummy.scale.set(gem * (1 - 0.45 * streak), gem * (1 + 2.6 * streak), gem * (1 - 0.45 * streak))
-        } else {
-          dummy.scale.setScalar(gem)
-        }
-        dummy.rotation.set(thetas[i], t * 6, thetas[i] * 0.5)
+        // Rough → fine: big lumpy asymmetric chunks that tumble, shrinking into
+        // small symmetric faceted stones as they polish.
+        const size = scales[i] * (1.15 - 0.62 * polish)
+        const chunk = 1 - polish
+        dummy.scale.set(
+          size * (1 + jitters[i] * 2.4 * chunk),
+          size * (1 - jitters[i] * 2.4 * chunk),
+          size * (1 + Math.sin(thetas[i]) * 0.7 * chunk),
+        )
+        // Rough stones tumble erratically; polished stones settle into a clean spin.
+        dummy.rotation.set(thetas[i] + chunk * 2.2, t * 6 + chunk * thetas[i] * 3, thetas[i] * 0.5)
         dummy.updateMatrix()
         mesh.setMatrixAt(i, dummy.matrix)
 
-        // Dim raw traces brighten into vivid gems, brightest as they pour out.
-        const bright = 0.26 + 1.05 * refine + (t >= T_OUT ? 0.28 : 0)
+        // Colour lerps dull-gray (rough) → vivid cobalt (polished), brightest as
+        // the fine stones pour out.
+        const bright = 0.32 + 0.95 * polish + (t >= T_OUT ? 0.28 : 0)
+        const tr = baseCol[i * 3] * bright
+        const tg = baseCol[i * 3 + 1] * bright
+        const tb = baseCol[i * 3 + 2] * bright
         mesh.setColorAt(
           i,
-          tint.setRGB(baseCol[i * 3] * bright, baseCol[i * 3 + 1] * bright, baseCol[i * 3 + 2] * bright),
+          tint.setRGB(
+            rough.r + (tr - rough.r) * polish,
+            rough.g + (tg - rough.g) * polish,
+            rough.b + (tb - rough.b) * polish,
+          ),
         )
       }
 
