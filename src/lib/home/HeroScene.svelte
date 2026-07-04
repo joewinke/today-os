@@ -120,9 +120,12 @@
       const TOP = 2.25
       const SPAN = 3.7 // mouth → throat: the polishing funnel
       const T_INTAKE = 0.14 // first 14%: rough stones are drawn down into the mouth
-      const T_OUT = 0.82 // last 18%: polished fine stones pour out below the throat
+      const T_OUT = 0.82 // last 18%: polished fine stones pour out + settle
       const INTAKE_H = 1.9 // how far above the mouth the rough stones are drawn from
-      const OUTPUT_DROP = 1.9 // how far fine stones fall out the bottom, into the underglow
+      const OUTPUT_DROP = 1.45 // how far fine stones fall out the bottom
+      const Y_FLOOR = TOP - SPAN - OUTPUT_DROP // basin floor: where fine stones collect
+      const BASIN_R = 1.3 // radius of the collected mound / basin ring
+      const DOME = 0.5 // height of the mound at its centre
 
       const geo = new THREE.IcosahedronGeometry(0.052, 0)
       const mat = new THREE.MeshStandardMaterial({
@@ -185,10 +188,14 @@
           y = TOP - SPAN * tn
           polish = tn
         } else {
-          // Fine stones pour out of the throat, fan, and fall into the underglow.
-          const to = (t - T_OUT) / (1 - T_OUT)
-          r = THROAT + 0.34 * Math.sin(to * Math.PI) + jitters[i] * 0.12 * to
-          y = TOP - SPAN - OUTPUT_DROP * to
+          // Resolution: fine stones pour out of the throat and SETTLE into a
+          // collected mound in the basin — the refined output accumulating.
+          const to = (t - T_OUT) / (1 - T_OUT) // 0→1
+          const e = to * to // ease: pour fast, settle slow
+          const restR = 0.1 + BASIN_R * Math.abs(jitters[i]) * 3.6 // resting radius in basin
+          const domeY = Y_FLOOR + DOME * Math.max(0, 1 - (restR / BASIN_R) ** 2) // dome heap
+          r = THROAT + (restR - THROAT) * e + 0.3 * Math.sin(to * Math.PI) * (1 - e)
+          y = TOP - SPAN + (domeY - (TOP - SPAN)) * e
           polish = 1
         }
         dummy.position.set(r * Math.cos(thetas[i]), y, r * Math.sin(thetas[i]))
@@ -225,7 +232,10 @@
 
       function stepParticles(dt: number) {
         for (let i = 0; i < COUNT; i++) {
-          ts[i] += dt * speeds[i] * (0.5 + 1.6 * ts[i])
+          // Linger in the output phase so the collected mound actually accumulates.
+          let adv = speeds[i] * (0.5 + 1.6 * ts[i])
+          if (ts[i] >= T_OUT) adv *= 0.35
+          ts[i] += dt * adv
           if (ts[i] > 1) {
             ts[i] -= 1
             thetas[i] = Math.random() * Math.PI * 2
@@ -258,6 +268,13 @@
       // The output aperture — refined gems pour out here into the underglow.
       throatRing.position.y = TOP - SPAN
       rig.add(throatRing)
+
+      // The basin: a chrome ring at the floor that frames the collected mound —
+      // the finishing point where the refined output gathers.
+      const basinRing = new THREE.Mesh(new THREE.TorusGeometry(BASIN_R, 0.045, 22, 130), ringMat)
+      basinRing.rotation.x = Math.PI / 2
+      basinRing.position.y = Y_FLOOR
+      rig.add(basinRing)
 
       // ---- interaction / loop ----
       let raf = 0
@@ -336,6 +353,7 @@
         throatRingMat.dispose()
         mouthRing.geometry.dispose()
         throatRing.geometry.dispose()
+        basinRing.geometry.dispose()
         envTex.dispose()
         pmrem.dispose()
         renderer.dispose()
