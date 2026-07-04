@@ -252,6 +252,12 @@
         >
           Start the Tour
         </button>
+        <a
+          href="/os"
+          class="btn btn-outline btn-lg rounded-none px-8 font-mono text-sm tracking-[0.08em] uppercase"
+        >
+          Enter Today OS &rarr;
+        </a>
         <!-- The four stops, surfaced up front so the demo structure is obvious
              before you even start — not buried down the scroll. -->
         <div class="hud text-base-content/45 flex flex-wrap items-center gap-x-3 gap-y-1">

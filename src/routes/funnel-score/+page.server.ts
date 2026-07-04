@@ -4,7 +4,15 @@ import { analyzeUrl, type FunnelReport } from "$lib/home/funnelChecks"
 import { ITSTODAY_SNAPSHOT, SNAPSHOT_HOSTS, hostKey } from "$lib/home/snapshots"
 import { domainOf, activateCached, setScannedTheme, resetTheme, getActiveTheme } from "$lib/adops/theme"
 import { rethemeProposed } from "$lib/adops/store"
+import { addProspectFromScan } from "$lib/os/store"
 import { buildThemeFromScan } from "$lib/server/scanTheme"
+
+/** Drop the scanned business onto the OS pipeline (FIND → CLOSE), once themed. */
+function addScannedProspect(score: number | null): void {
+  const t = getActiveTheme()
+  if (t.source !== "scanned") return // fresh scan not themed yet; skip until it is
+  addProspectFromScan({ company: t.business, city: t.city, offer: t.offer, vertical: t.vertical, score })
+}
 
 /**
  * The prospect queue for the market map: the active theme's peers (same market
@@ -28,6 +36,7 @@ function themeFromScan(report: FunnelReport, fallbackUrl: string): void {
   const domain = domainOf(report.finalUrl || fallbackUrl)
   if (activateCached(domain)) {
     void rethemeProposed() // pre-seeded itstoday or a prior scan — re-theme existing recs
+    addScannedProspect(report.score) // cached theme is set synchronously — add now
     return
   }
   buildThemeFromScan(domain, report.pageTitle, report.pageDescription)
@@ -35,7 +44,10 @@ function themeFromScan(report: FunnelReport, fallbackUrl: string): void {
       if (theme) setScannedTheme(theme)
       else resetTheme()
     })
-    .then(() => rethemeProposed())
+    .then(() => {
+      rethemeProposed()
+      addScannedProspect(report.score) // fresh scan: add the prospect once themed
+    })
     .catch(() => resetTheme())
 }
 
