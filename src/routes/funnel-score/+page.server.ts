@@ -1,10 +1,11 @@
-import { fail } from "@sveltejs/kit"
+import { fail, redirect } from "@sveltejs/kit"
 import type { Actions } from "./$types"
 import { analyzeUrl, type FunnelReport } from "$lib/home/funnelChecks"
 import { ITSTODAY_SNAPSHOT, SNAPSHOT_HOSTS, hostKey } from "$lib/home/snapshots"
 import { domainOf, activateCached, setScannedTheme, resetTheme, getActiveTheme } from "$lib/adops/theme"
 import { rethemeProposed } from "$lib/adops/store"
-import { addProspectFromScan, addMarketProspects } from "$lib/os/store"
+import { addProspectFromScan, addMarketProspects, getProspects, moveProspect } from "$lib/os/store"
+import { slugify } from "$lib/os/types"
 import { buildThemeFromScan } from "$lib/server/scanTheme"
 
 /**
@@ -57,7 +58,9 @@ function themeFromScan(report: FunnelReport, fallbackUrl: string): void {
 }
 
 export const actions: Actions = {
-  default: async ({ request }) => {
+  // Named (not `default`) because SvelteKit forbids a default action alongside
+  // named ones, and the market panel adds a `queue` action below.
+  scan: async ({ request }) => {
     const data = await request.formData()
     const url = String(data.get("url") ?? "").trim()
 
@@ -98,5 +101,18 @@ export const actions: Actions = {
       }
       return fail(422, { url, error: message })
     }
+  },
+
+  // Market panel QUEUE → actually advance that prospect to "queued" in the
+  // pipeline (not just a link), then drop into the outreach queue.
+  queue: async ({ request }) => {
+    const data = await request.formData()
+    const company = String(data.get("company") ?? "").trim()
+    if (company) {
+      const slug = slugify(company)
+      const p = getProspects().find((x) => slugify(x.company) === slug)
+      if (p) moveProspect(p.id, "queued")
+    }
+    throw redirect(303, "/studio/batch")
   },
 }

@@ -17,9 +17,15 @@
 
 ## What does this tool do?
 
-Today OS attacks the highest-leverage boring problem in media buying: **account hygiene doesn't scale with account count.** Every platform — Google, Meta, Taboola, TikTok — is its own dashboard, its own API maturity, its own tribal knowledge. The compounding work (catching zero-conversion spend, budget-limited campaigns, disapproved ads, creative fatigue, missing negatives) gets done sporadically, by whoever has time.
+**Today OS runs a performance-marketing firm end to end — find advertisers, pitch them, close them, run their accounts, prove the result.** The lifecycle is the product: **FIND → PITCH → CLOSE → RUN → PROVE.**
 
-The core loop:
+- **FIND** — type any website; it scans the funnel live and scores it in ~2 seconds, then maps the rest of that market into a prospect queue.
+- **PITCH** — one shoot becomes a personalized pitch video for every prospect, each with their own landing page carrying their own score.
+- **CLOSE** — work the pipeline board; closing a deal spawns that client's ad accounts into the console, themed to them.
+- **RUN** — agents audit spend on a cadence, propose fixes with evidence and dollar impact, and a spend-cap gate refuses anything unsafe until a human approves.
+- **PROVE** — every approval ticks recovered waste onto the ledger; each client gets a monthly report.
+
+The deepest engineering is RUN — the agentic ad-ops loop — because that's the boring, compounding problem: **account hygiene doesn't scale with account count.** Every platform (Google, Meta, Taboola, TikTok) is its own dashboard, API maturity, and tribal knowledge, so the compounding work (zero-conversion spend, budget-limited campaigns, disapproved ads, creative fatigue, missing negatives) gets done sporadically. That loop:
 
 1. **One canonical spec.** Every ad account normalizes into a single `AdSpec` shape — campaigns → ad groups → ads/keywords + metric rows, money in integer cents, serialized as diffable YAML and queryable JSON. Google, Meta, Taboola, and TikTok all become the *same* shape, so the audit brain is written once. This is the single-source-of-truth idea: business data in one agent-accessible place, not spidered across services.
 2. **Agents audit on a cadence.** Each account has a cadence and a next-run time; a scheduler drains due accounts, snapshots them, and reviews the snapshot two ways:

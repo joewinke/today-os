@@ -21,6 +21,9 @@ export interface Prospect {
   offer: string
   vertical: string
   score: number | null
+  /** True when the score is an illustrative projection (a market peer we didn't
+   *  actually scan), false when it came from a real live scan of this business. */
+  scoreProjected?: boolean
   stage: PipelineStage
   /** Epoch ms it entered the pipeline. */
   createdAt: number

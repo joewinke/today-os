@@ -123,37 +123,46 @@
   const tour = [
     {
       n: "01",
-      title: "Run the Scan",
-      body: "Point it at any site. Ten live conversion checks, one score, the fixes ranked. Start with itstoday.org.",
+      title: "Find",
+      body: "Scan any site — ten live conversion checks, one score in ~2 seconds — then map the rest of that market into a prospect queue.",
       href: "/funnel-score",
-      cta: "OPEN THE DIAGNOSTIC",
+      cta: "SCAN A SITE",
       primary: true,
       external: false,
     },
     {
       n: "02",
-      title: "Open the Console",
-      body: "Run a sweep. Watch agents audit four ad accounts, then approve a change — and watch the gate refuse an unsafe one.",
+      title: "Pitch",
+      body: "One shoot becomes a personalized pitch video for every prospect — each with their own landing page and their own score.",
+      href: "/os/outreach",
+      cta: "OPEN OUTREACH",
+      primary: false,
+      external: false,
+    },
+    {
+      n: "03",
+      title: "Close",
+      body: "Work the pipeline board. Close a deal and that client's ad accounts light up in the console, themed to them.",
+      href: "/os/pipeline",
+      cta: "OPEN THE PIPELINE",
+      primary: false,
+      external: false,
+    },
+    {
+      n: "04",
+      title: "Run",
+      body: "Agents audit spend on a cadence and propose fixes with dollar impact — and a spend-cap gate refuses anything unsafe until a human approves.",
       href: "/admin",
       cta: "ENTER AD OPS",
       primary: false,
       external: false,
     },
     {
-      n: "03",
-      title: "Enter the Studio",
-      body: "Generate real AI b-roll from a line of script, then personalize the whole ad for every lead in the list.",
-      href: "/studio",
-      cta: "OPEN THE STUDIO",
-      primary: false,
-      external: false,
-    },
-    {
-      n: "04",
-      title: "Read the Thinking",
-      body: "The three questions the contest asks — what it does, why this, what's next — answered in the README.",
-      href: "/readme",
-      cta: "READ THE THINKING",
+      n: "05",
+      title: "Prove",
+      body: "Every approval ticks recovered waste onto the ledger. Each client gets a monthly report. Then read the thinking in the README.",
+      href: "/os/prove",
+      cta: "SEE THE LEDGER",
       primary: false,
       external: false,
     },
@@ -348,8 +357,9 @@
       <span class="hud">SEC. 02 / THE TOUR</span>
       <h2 class="statement text-[clamp(2.2rem,5.5vw,4.6rem)]">Walk the<br />System</h2>
       <p class="text-base-content/70 max-w-2xl text-[15px] leading-relaxed">
-        Everything that built this page is live and running. Four stops, in order — each one a real
-        surface you operate yourself, not a slide. About two minutes end to end.
+        Everything that built this page is live and running. Five stages, in order — find, pitch,
+        close, run, prove — each a real surface you operate yourself, not a slide. About three
+        minutes end to end.
       </p>
     </div>
 

@@ -97,6 +97,7 @@
   <!-- ============ THE INSTRUMENT ============ -->
   <form
     method="POST"
+    action="?/scan"
     class="border-line max-w-3xl border"
     use:enhance={() => {
       scanning = true
@@ -258,11 +259,15 @@
                         <p class="truncate text-sm text-base-content">{peer.company}</p>
                         <p class="hud text-base-content/50 normal-case">{peer.city} · {peer.offer}</p>
                       </div>
-                      <a
-                        href="/studio/batch"
-                        class="hud text-primary transition-transform hover:translate-x-1 whitespace-nowrap"
-                        >QUEUE &rarr;</a
-                      >
+                      <form method="POST" action="?/queue">
+                        <input type="hidden" name="company" value={peer.company} />
+                        <button
+                          type="submit"
+                          class="hud text-primary transition-transform hover:translate-x-1 whitespace-nowrap"
+                        >
+                          QUEUE &rarr;
+                        </button>
+                      </form>
                     </li>
                   {/each}
                 </ul>

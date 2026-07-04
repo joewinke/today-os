@@ -59,11 +59,11 @@ function createSeeded(): OsState {
   const id = (p: string) => `${p}-${(++n).toString(36)}`
 
   const prospects: Prospect[] = [
-    { id: id("p"), company: "Cobalt & Co.", city: "Richmond", offer: "a free funnel audit", vertical: "performance marketing", score: 41, stage: "contacted", createdAt: now - 30 * HOUR },
-    { id: id("p"), company: "Harbor Point Dental", city: "Annapolis", offer: "a free new-patient audit", vertical: "local services", score: 55, stage: "meeting", createdAt: now - 26 * HOUR },
-    { id: id("p"), company: "Vantage Roofing", city: "Columbus", offer: "a free inspection", vertical: "home services", score: 38, stage: "queued", createdAt: now - 20 * HOUR },
-    { id: id("p"), company: "Lumen Aesthetics", city: "Scottsdale", offer: "a free consult", vertical: "health & medicare", score: 62, stage: "won", createdAt: now - 72 * HOUR, spawnedAccounts: true },
-    { id: id("p"), company: "Pike & Rowe Law", city: "Hartford", offer: "a free case review", vertical: "legal services", score: 47, stage: "won", createdAt: now - 96 * HOUR, spawnedAccounts: true },
+    { id: id("p"), company: "Cobalt & Co.", city: "Richmond", offer: "a free funnel audit", vertical: "performance marketing", score: 41, scoreProjected: true, stage: "contacted", createdAt: now - 30 * HOUR },
+    { id: id("p"), company: "Harbor Point Dental", city: "Annapolis", offer: "a free new-patient audit", vertical: "local services", score: 55, scoreProjected: true, stage: "meeting", createdAt: now - 26 * HOUR },
+    { id: id("p"), company: "Vantage Roofing", city: "Columbus", offer: "a free inspection", vertical: "home services", score: 38, scoreProjected: true, stage: "queued", createdAt: now - 20 * HOUR },
+    { id: id("p"), company: "Lumen Aesthetics", city: "Scottsdale", offer: "a free consult", vertical: "health & medicare", score: 62, scoreProjected: true, stage: "won", createdAt: now - 72 * HOUR, spawnedAccounts: true },
+    { id: id("p"), company: "Pike & Rowe Law", city: "Hartford", offer: "a free case review", vertical: "legal services", score: 47, scoreProjected: true, stage: "won", createdAt: now - 96 * HOUR, spawnedAccounts: true },
   ]
 
   const activity: ActivityItem[] = [
@@ -124,7 +124,7 @@ export function addProspectFromScan(input: { company: string; city: string; offe
   const s = getState()
   const existing = s.prospects.find((p) => p.company.toLowerCase() === input.company.toLowerCase())
   if (existing) return existing
-  const p: Prospect = { id: `p-${(++s.seq).toString(36)}`, ...input, stage: "new", createdAt: Date.now() }
+  const p: Prospect = { id: `p-${(++s.seq).toString(36)}`, ...input, scoreProjected: false, stage: "new", createdAt: Date.now() }
   s.prospects.unshift(p)
   log("scan", `Scanned ${p.company}${p.score != null ? ` — scored ${p.score}/100` : ""}`)
   return p
@@ -164,6 +164,7 @@ export function addMarketProspects(
       offer: peer.offer,
       vertical,
       score: quickScore(peer.company),
+      scoreProjected: true, // illustrative — we didn't actually scan this peer
       stage: "new",
       createdAt: Date.now(),
     })

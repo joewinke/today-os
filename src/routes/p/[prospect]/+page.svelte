@@ -47,11 +47,20 @@
     {#if p.score != null}
       <div class="border-line mt-8 flex items-stretch border">
         <div class="flex flex-col justify-center px-5 py-4">
-          <p class="hud text-base-content/50">FUNNEL SCORE</p>
+          <p class="hud text-base-content/50 flex items-center gap-2">
+            FUNNEL SCORE
+            {#if p.scoreProjected && !data.isSample}
+              <span class="border-line text-base-content/45 border px-1.5 py-0.5 text-[10px]">PROJECTED</span>
+            {/if}
+          </p>
           <p class="statement mt-1 text-5xl tabular-nums {scoreClass(p.score)}">{p.score}<span class="text-base-content/30 text-2xl">/100</span></p>
         </div>
         <div class="border-line text-base-content/70 flex flex-1 items-center border-l px-5 py-4 text-sm">
-          Enough working traffic to fix fast — the gaps below are the difference between paying for clicks and booking {p.offer.replace(/^a\s+/, "")}.
+          {#if p.scoreProjected && !data.isSample}
+            A projected benchmark for this market — scan the live site for the exact number. The gaps below are the difference between paying for clicks and converting them.
+          {:else}
+            Enough working traffic to fix fast — the gaps below are the difference between paying for clicks and converting them.
+          {/if}
         </div>
       </div>
     {/if}

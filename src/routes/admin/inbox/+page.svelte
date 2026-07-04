@@ -29,6 +29,12 @@
   function changeJson(rec: Recommendation): string {
     return JSON.stringify(rec.proposed_change, null, 2)
   }
+
+  /** Monthly waste this rec recovers, if any (cents → "$6,262"). */
+  function recoveredWaste(rec: Recommendation): string | null {
+    const w = rec.proposed_change["waste_cents_monthly"]
+    return typeof w === "number" && w > 0 ? `$${Math.round(w / 100).toLocaleString("en-US")}` : null
+  }
 </script>
 
 <p class="hud mb-2">APPROVAL INBOX</p>
@@ -181,6 +187,15 @@
                   GATE: {rec.gate_verdict.toUpperCase().replace("_", " ")}
                 </span>
                 <span class="hud" style="text-transform: none">{rec.gate_reason}</span>
+              {/if}
+              {#if recoveredWaste(rec)}
+                <a
+                  href="/os/prove"
+                  class="hud text-success ml-auto transition-transform hover:translate-x-1"
+                  style="text-transform: none"
+                >
+                  +{recoveredWaste(rec)}/mo → see it on the ledger →
+                </a>
               {/if}
             </div>
           {/if}
