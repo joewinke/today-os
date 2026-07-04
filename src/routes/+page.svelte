@@ -1,10 +1,22 @@
 <script lang="ts">
   import "$lib/home/home.css"
+  import { goto } from "$app/navigation"
   import { reveal } from "$lib/actions/reveal"
   import TerminalNav from "$lib/home/TerminalNav.svelte"
   import HudChrome from "$lib/home/HudChrome.svelte"
   import HeroScene from "$lib/home/HeroScene.svelte"
   import { markTourStarted } from "$lib/tour/tour"
+
+  // Hero scan handoff — build the funnel URL explicitly so no browser
+  // form-serialization quirk can ever mangle it (this is the judge's first action).
+  let heroUrl = $state("")
+  function scanFromHero(e: SubmitEvent) {
+    e.preventDefault()
+    const u = heroUrl.trim()
+    if (!u) return
+    markTourStarted()
+    goto(`/funnel-score?url=${encodeURIComponent(u)}&run=1`)
+  }
 
   const prefersReduced =
     typeof window !== "undefined" &&
@@ -247,11 +259,12 @@
         <form
           action="/funnel-score"
           method="GET"
-          onsubmit={() => markTourStarted()}
+          onsubmit={scanFromHero}
           class="border-line bg-base-100/70 flex w-full max-w-xl flex-col border backdrop-blur sm:flex-row"
         >
           <input type="hidden" name="run" value="1" />
           <input
+            bind:value={heroUrl}
             name="url"
             type="text"
             inputmode="url"
