@@ -47,7 +47,10 @@
     <div>
       <p class="hud text-base-content/50">TODAY OS · OPERATING DASHBOARD</p>
       <h1 class="statement tracking-in-expand mt-2 text-4xl sm:text-5xl">Good morning, Matt.</h1>
-      <p class="text-base-content/60 mt-2 text-sm">Here's what the machine did overnight.</p>
+      <p class="text-base-content/70 mt-3 max-w-xl text-sm leading-relaxed">
+        You've seen the client side — the landing pages, the score. This is the seat It's Today Media
+        operates from. Here's what the machine did overnight.
+      </p>
     </div>
     <div class="flex flex-wrap items-center gap-3">
       <form method="POST" action="?/advanceWeek" use:enhance={onAdvance}>

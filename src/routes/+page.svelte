@@ -6,14 +6,26 @@
   import HudChrome from "$lib/home/HudChrome.svelte"
   import HeroScene from "$lib/home/HeroScene.svelte"
   import { markTourStarted } from "$lib/tour/tour"
+  import { shake } from "$lib/actions/shake"
 
   // Hero scan handoff — build the funnel URL explicitly so no browser
   // form-serialization quirk can ever mangle it (this is the judge's first action).
   let heroUrl = $state("")
+  let heroInput = $state<HTMLInputElement | null>(null)
+  let heroShake = $state(0)
+  let heroEmpty = $state(false)
   function scanFromHero(e: SubmitEvent) {
     e.preventDefault()
     const u = heroUrl.trim()
-    if (!u) return
+    if (!u) {
+      // Empty submit must not silently no-op (the "Enter Today OS" link sits right
+      // below, so a second click reads as "scan sent me to /os"). Prompt instead.
+      heroEmpty = true
+      heroShake++
+      heroInput?.focus()
+      return
+    }
+    heroEmpty = false
     markTourStarted()
     goto(`/funnel-score?url=${encodeURIComponent(u)}&run=1`)
   }
@@ -269,11 +281,16 @@
           action="/funnel-score"
           method="GET"
           onsubmit={scanFromHero}
-          class="border-line bg-base-100/70 flex w-full max-w-xl flex-col border backdrop-blur sm:flex-row"
+          use:shake={heroShake}
+          class="flex w-full max-w-xl flex-col border backdrop-blur sm:flex-row {heroEmpty
+            ? 'border-error'
+            : 'border-line'} bg-base-100/70"
         >
           <input type="hidden" name="run" value="1" />
           <input
+            bind:this={heroInput}
             bind:value={heroUrl}
+            oninput={() => (heroEmpty = false)}
             name="url"
             type="text"
             inputmode="url"
@@ -289,9 +306,12 @@
             Scan my site &rarr;
           </button>
         </form>
+        <p class="hud {heroEmpty ? 'text-error' : 'text-base-content/40'}" role="status" aria-live="polite">
+          {heroEmpty ? "type a domain first" : "your site, a prospect's, anyone's — live"}
+        </p>
         <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
           <a href="/os" class="hud text-primary transition-transform hover:translate-x-0.5">
-            Or enter Today OS &rarr;
+            Enter Today OS &rarr; the seat you'd operate from
           </a>
           <span class="hud text-base-content/35">LIVE · SCANS ANY SITE · ~3 MIN END TO END</span>
         </div>
