@@ -172,3 +172,15 @@ export function closeWon(id: string): Prospect | null {
 export function getManagedClients(): Prospect[] {
   return getState().prospects.filter((p) => p.spawnedAccounts)
 }
+
+/**
+ * PROVE: approving a waste-carrying rec in RUN recovers that monthly spend —
+ * the ledger ticks up and the activity feed records it. `cents` is the rec's
+ * waste_cents_monthly.
+ */
+export function recordWasteRecovered(cents: number, label?: string): void {
+  if (!(cents > 0)) return
+  const s = getState()
+  s.wasteRecoveredCents += cents
+  log("gate", `Recovered ${money(cents)}/mo in wasted spend${label ? ` — ${label}` : ""}`)
+}

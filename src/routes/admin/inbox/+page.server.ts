@@ -6,6 +6,8 @@ import {
   dismissRecommendation,
   evaluateAutoApplyGate,
 } from "$lib/adops/store"
+import { getActiveTheme } from "$lib/adops/theme"
+import { recordWasteRecovered } from "$lib/os/store"
 import type { Actions, PageServerLoad } from "./$types"
 
 export const load: PageServerLoad = async () => {
@@ -37,6 +39,10 @@ export const actions: Actions = {
     const id = String(form.get("id") ?? "")
     try {
       const rec = approveRecommendation(id)
+      // PROVE: a human just approved this change — if it recovers wasted spend,
+      // tick the OS ledger (waste recovered) for the client under management.
+      const waste = rec.proposed_change?.["waste_cents_monthly"]
+      if (typeof waste === "number") recordWasteRecovered(waste, `approved for ${getActiveTheme().business}`)
       return { ok: true as const, id, verdict: rec.gate_verdict, reason: rec.gate_reason }
     } catch (err) {
       return fail(400, { error: err instanceof Error ? err.message : "Approve failed" })
