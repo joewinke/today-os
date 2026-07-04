@@ -1,0 +1,110 @@
+/* /haoqi4 — keyframes + motion utilities for "the blueprint" cut.
+   @keyframes must live in a real stylesheet, not a component <style> (Svelte's
+   vitePreprocess trips on them). Everything here is transform/opacity only and
+   is fully disabled under prefers-reduced-motion. Scoped under .hq4 so it can
+   never leak into other routes. */
+
+/* ── hero load choreography: title lines rise, drafting lines draw ── */
+@media (prefers-reduced-motion: no-preference) {
+  .hq4 .hq4-rise {
+    animation: hq4-rise 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--d, 0) * 1ms);
+  }
+  @keyframes hq4-rise {
+    from {
+      transform: translateY(108%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .hq4 .hq4-draw {
+    animation: hq4-draw 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--d, 0) * 1ms);
+  }
+  @keyframes hq4-draw {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  .hq4 .hq4-draw--v {
+    animation-name: hq4-draw-v;
+  }
+  @keyframes hq4-draw-v {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  .hq4 .hq4-fade {
+    animation: hq4-fade 520ms ease-out both;
+    animation-delay: calc(var(--d, 0) * 1ms);
+  }
+  @keyframes hq4-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/* ── live indicator dot ── */
+@media (prefers-reduced-motion: no-preference) {
+  .hq4 .hq4-livedot {
+    animation: hq4-pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes hq4-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.25;
+    }
+  }
+}
+
+/* ── scroll cue: a nudging arrow ── */
+@media (prefers-reduced-motion: no-preference) {
+  .hq4 .hq4-nudge {
+    animation: hq4-nudge 2.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  }
+  @keyframes hq4-nudge {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(6px);
+    }
+  }
+}
+
+/* ── the active part's leader tag breathes like a plotter head over paper ── */
+@media (prefers-reduced-motion: no-preference) {
+  .hq4 .hq4-part-lead {
+    animation: hq4-lead-hum 1.6s ease-in-out infinite;
+  }
+  @keyframes hq4-lead-hum {
+    0%,
+    100% {
+      opacity: calc(min(1, var(--dr, 0) * 4) * (0.35 + var(--a, 0) * 0.65));
+    }
+    50% {
+      opacity: calc(min(1, var(--dr, 0) * 4) * (0.35 + var(--a, 0) * 0.3));
+    }
+  }
+}
+
+/* Reduced motion: entrance utilities resolve to their final frame (the
+   animations above are gated on no-preference, so nothing plays; elements
+   keep their default, fully-visible styles). */
