@@ -13,6 +13,7 @@
 
 import type { PageServerLoad } from "./$types"
 import { getMetrics, getProspects } from "$lib/os/store"
+import { slugify } from "$lib/os/types"
 import { error } from "@sveltejs/kit"
 
 const CREATIVE_SAMPLES = [
@@ -21,12 +22,6 @@ const CREATIVE_SAMPLES = [
   { id: "signing", label: "Customer testimonial", src: "/video/samples/signing.mp4" },
 ]
 
-function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "")
-}
 
 /** Deterministic pseudo-random generator seeded from the client slug, so a
  * report's fixture figures stay stable across reloads instead of jittering. */

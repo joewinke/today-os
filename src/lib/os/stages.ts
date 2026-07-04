@@ -28,6 +28,29 @@ export const STAGES: Stage[] = [
   { key: "prove", label: "PROVE", blurb: "Waste recovered, results reported", href: "/os/prove" },
 ]
 
+// ── Cockpit chrome routing (seam #2: lift the shell to the root layout) ───────
+// The operator app-shell (Sidebar + OperatorGate) mounts at the ROOT layout and
+// renders only on operator surfaces — so the sidebar persists across /os, Ad Ops,
+// and Studio as one app. Client-facing surfaces (/, /p, /report) never get it.
+
+/** Operator surfaces that FORCE the OperatorGate ("Continue as Matt") when the
+ *  operator hasn't entered yet — the "login moment". */
+export function gatedRoute(path: string): boolean {
+  const p = path.replace(/\/$/, "") || "/"
+  return (
+    p === "/os" || p.startsWith("/os/") || p === "/admin" || p.startsWith("/admin/") || p === "/studio" || p.startsWith("/studio/")
+  )
+}
+
+/** Surfaces that show cockpit chrome once the operator has entered. Includes the
+ *  dual-seat /funnel-score (prospect seat from the marketing scan, operator seat
+ *  as the cockpit's FIND tool) — it shows the sidebar only when chosen and NEVER
+ *  forces the gate, so the golden path's first step stays clean for visitors. */
+export function cockpitRoute(path: string): boolean {
+  const p = path.replace(/\/$/, "") || "/"
+  return gatedRoute(p) || p === "/funnel-score" || p.startsWith("/funnel-score")
+}
+
 /** Which stage a pathname belongs to (for nav active state). */
 export function stageForPath(path: string): string | null {
   const p = path.replace(/\/$/, "") || "/"
