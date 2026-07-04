@@ -46,12 +46,56 @@
   --noise: 0;
 }
 
+/* Instrument · LIGHT — the same "now" design language, in paper/ink: warm-white
+   surfaces, blue-ink type, the same cobalt accent, low-contrast gray grid + line.
+   A premium light mode (not the retired 2018 skin). AA on every surface. */
+@plugin "daisyui/theme" {
+  name: "instrument-light";
+  default: false;
+  color-scheme: light;
+  --color-base-100: oklch(98.4% 0.006 90);
+  --color-base-200: oklch(96.4% 0.006 88);
+  --color-base-300: oklch(93.4% 0.007 86);
+  --color-base-content: oklch(24% 0.03 262);
+  --color-primary: oklch(47% 0.23 264);
+  --color-primary-content: oklch(98.5% 0.01 264);
+  --color-secondary: oklch(46% 0.07 250);
+  --color-secondary-content: oklch(98.5% 0.01 250);
+  --color-accent: oklch(50% 0.19 258);
+  --color-accent-content: oklch(98.5% 0.01 258);
+  --color-neutral: oklch(92% 0.008 260);
+  --color-neutral-content: oklch(24% 0.03 262);
+  --color-info: oklch(47% 0.11 230);
+  --color-info-content: oklch(98.5% 0.01 230);
+  --color-success: oklch(47% 0.13 152);
+  --color-success-content: oklch(98.5% 0.01 152);
+  --color-warning: oklch(58% 0.12 78);
+  --color-warning-content: oklch(20% 0.03 78);
+  --color-error: oklch(51% 0.2 25);
+  --color-error-content: oklch(98.5% 0.01 25);
+  --radius-selector: 0.25rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.375rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
 @theme {
   --font-display: "Archivo Variable", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
   /* hairline: 1px borders/dividers · muted: instrument secondary text */
   --color-line: oklch(28% 0.012 260);
   --color-muted: oklch(64% 0.015 260);
+}
+
+/* @theme vars are global (:root); re-point line + muted for the light theme so
+   hairlines read as low-contrast gray on paper and muted text stays AA on white. */
+html[data-theme="instrument-light"] {
+  --color-line: oklch(82% 0.01 262);
+  --color-muted: oklch(45% 0.02 262);
 }
 
 /* ---- Instrument chrome helpers (shared across routes) ---- */

@@ -24,9 +24,10 @@
 </script>
 
 <header class="border-line bg-base-100/90 fixed inset-x-0 top-0 z-50 border-b">
-  <nav class="flex h-12 items-center justify-between px-6 sm:px-10" aria-label="Primary">
+  <!-- right padding clears the fixed theme-toggle in the top-right corner -->
+  <nav class="flex h-12 items-center justify-between pr-14 pl-6 sm:pr-16 sm:pl-10" aria-label="Primary">
     <a href="/" class="hud text-base-content hover:text-base-content"> TODAY OS </a>
-    <div class="flex items-center gap-5 sm:gap-7">
+    <div class="flex items-center gap-4 sm:gap-6">
       <a href="/readme" class="hud hover:text-base-content">README</a>
       <a href="/os" class="hud text-primary hover:text-base-content">
         ENTER TODAY OS<span class="text-base-content/50">[/]</span>

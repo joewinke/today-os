@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="%sveltekit.assets%/favicon.svg" type="image/svg+xml" />
     <title>It's Today Media — Today OS</title>
+    <script>
+      // No-flash theme: apply the persisted choice before first paint so the
+      // WebGL scene + every surface init with the right palette (default dark).
+      try {
+        if (localStorage.getItem("todayos-theme") === "instrument-light")
+          document.documentElement.setAttribute("data-theme", "instrument-light")
+      } catch (e) {}
+    </script>
     %sveltekit.head%
   </head>
   <body>

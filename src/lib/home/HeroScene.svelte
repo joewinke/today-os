@@ -71,15 +71,28 @@
       const envTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
       scene.environment = envTex
 
-      // theme tokens → materials
-      const [pr, pg, pb] = cssColorToRgb("--color-primary")
-      const [cr, cg, cb] = cssColorToRgb("--color-base-content")
-      const [br, bg, bb] = cssColorToRgb("--color-base-100")
-      const cobalt = new THREE.Color().setRGB(pr, pg, pb, THREE.SRGBColorSpace)
-      const chrome = new THREE.Color().setRGB(cr, cg, cb, THREE.SRGBColorSpace)
-      const ink = new THREE.Color().setRGB(br, bg, bb, THREE.SRGBColorSpace)
+      // theme tokens → materials. These Color objects are mutated in place by
+      // readPalette() so a live theme swap (light ↔ dark) can re-tint the whole
+      // scene without re-initialising anything.
+      const cobalt = new THREE.Color() // --color-primary  (accent gems / underlight)
+      const chrome = new THREE.Color() // --color-base-content (metal / key light)
+      const ink = new THREE.Color() // --color-base-100 (fog: fades into the page bg)
       // Dull raw-stone gray for the rough intake, before the funnel polishes it.
-      const rough = chrome.clone().multiplyScalar(0.34)
+      const rough = new THREE.Color()
+
+      /** Pull the three theme tokens off the live CSS and refresh the palette. */
+      function readPalette() {
+        const [pr, pg, pb] = cssColorToRgb("--color-primary")
+        const [cr, cg, cb] = cssColorToRgb("--color-base-content")
+        const [br, bg, bb] = cssColorToRgb("--color-base-100")
+        cobalt.setRGB(pr, pg, pb, THREE.SRGBColorSpace)
+        chrome.setRGB(cr, cg, cb, THREE.SRGBColorSpace)
+        ink.setRGB(br, bg, bb, THREE.SRGBColorSpace)
+        rough.copy(chrome).multiplyScalar(0.34)
+      }
+      // Reads whatever theme is live on <html> at mount — so a page that loads
+      // already in instrument-light inits with the correct palette immediately.
+      readPalette()
 
       scene.fog = new THREE.Fog(ink, 9, 17)
 
@@ -145,6 +158,11 @@
       // Each particle's fully-refined color; the displayed color is this dimmed
       // by how far the particle has been refined (see placeParticle).
       const baseCol = new Float32Array(COUNT * 3)
+      // Per-particle recipe for baseCol, kept so recomputeBaseColors() can rebuild
+      // the palette deterministically (same stones stay chrome/cobalt) on a theme
+      // swap: 1 = chrome sparkle, else a cobalt gem tinted by partShade.
+      const partIsChrome = new Uint8Array(COUNT)
+      const partShade = new Float32Array(COUNT)
       // Each particle's resting spot in the collected mound. Distributed as a
       // real pile — dense wide base, sparse peak (cone-density bias on height +
       // uniform-by-area radius), so it reads as an accumulating heap.
@@ -169,18 +187,25 @@
         pileX[i] = pr * Math.cos(pa)
         pileZ[i] = pr * Math.sin(pa)
         pileY[i] = Y_FLOOR + hN * DOME
-        // mostly cobalt gems (varied depth) + a few chrome sparkles
-        if (Math.random() < 0.18) {
-          tint.copy(chrome)
-        } else {
-          tint.copy(cobalt).multiplyScalar(0.7 + Math.random() * 0.6)
-        }
-        baseCol[i * 3] = tint.r
-        baseCol[i * 3 + 1] = tint.g
-        baseCol[i * 3 + 2] = tint.b
-        mesh.setColorAt(i, tint)
+        // mostly cobalt gems (varied depth) + a few chrome sparkles — fix the
+        // recipe now so a theme swap re-tints the same stones consistently.
+        partIsChrome[i] = Math.random() < 0.18 ? 1 : 0
+        partShade[i] = 0.7 + Math.random() * 0.6
       }
-      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
+
+      /** Rebuild every particle's base color from the current cobalt/chrome. */
+      function recomputeBaseColors() {
+        for (let i = 0; i < COUNT; i++) {
+          if (partIsChrome[i]) tint.copy(chrome)
+          else tint.copy(cobalt).multiplyScalar(partShade[i])
+          baseCol[i * 3] = tint.r
+          baseCol[i * 3 + 1] = tint.g
+          baseCol[i * 3 + 2] = tint.b
+          mesh.setColorAt(i, tint)
+        }
+        if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
+      }
+      recomputeBaseColors()
 
       function placeParticle(i: number) {
         const t = ts[i]
@@ -299,6 +324,40 @@
       basinRing.position.y = Y_FLOOR
       rig.add(basinRing)
 
+      // ---- live theme swap ----
+      // The header sun/moon toggle flips data-theme on <html> then fires
+      // "todayos-theme-changed". Re-read the tokens and re-tint everything in
+      // place — fog, lights, ring metals, and every particle's base color — so
+      // the funnel reads beautifully on both the ink-dark and paper-light themes
+      // without a re-init or reload.
+      function applyTheme() {
+        readPalette()
+        scene.fog!.color.copy(ink)
+        key.color.copy(chrome)
+        under.color.copy(cobalt)
+        mat.color.copy(chrome)
+        ringMat.color.copy(chrome)
+        throatRingMat.color.copy(cobalt)
+        // Light theme: base-100 is bright, and its cobalt primary is darker, so
+        // the gems risk reading muddy on paper. Push the cobalt underlight harder
+        // so the pour-out and the collected mound glow vividly; on the ink-dark
+        // theme the softer underlight keeps the near-black background moody.
+        const lightTheme = 0.2126 * ink.r + 0.7152 * ink.g + 0.0722 * ink.b > 0.5
+        under.intensity = lightTheme ? 44 : 26
+        recomputeBaseColors()
+        // Re-place + render once so the swap is instant even under reduced motion
+        // or while the animation loop is paused (tab hidden / scrolled away).
+        for (let i = 0; i < COUNT; i++) placeParticle(i)
+        mesh.instanceMatrix.needsUpdate = true
+        if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
+        renderer.render(scene, camera)
+      }
+      const onThemeChanged = () => applyTheme()
+      window.addEventListener("todayos-theme-changed", onThemeChanged)
+      // Normalise everything (incl. theme-aware underlight intensity) for whatever
+      // theme is live at mount — covers a page that loads already in light.
+      applyTheme()
+
       // ---- interaction / loop ----
       let raf = 0
       let visible = true
@@ -368,6 +427,7 @@
       cleanup = () => {
         cancelAnimationFrame(raf)
         window.removeEventListener("mousemove", onPointer)
+        window.removeEventListener("todayos-theme-changed", onThemeChanged)
         io.disconnect()
         ro.disconnect()
         geo.dispose()
@@ -402,9 +462,24 @@
     inset: 0;
     overflow: hidden;
   }
+  /* Soft cobalt aura behind the (alpha) canvas: gives the funnel a light-table
+     glow and depth on both themes — and on paper it seats the collected mound
+     against a faint halo instead of floating on flat white. Token-only. */
+  .scene-host::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+      68% 62% at 72% 52%,
+      color-mix(in oklch, var(--color-primary) 12%, transparent),
+      transparent 72%
+    );
+  }
   .scene-host :global(canvas) {
     display: block;
     width: 100%;
     height: 100%;
+    position: relative;
   }
 </style>

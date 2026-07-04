@@ -2,17 +2,15 @@
   import "../app.css"
   import "$lib/animista.css"
   import "$lib/transitions.css"
-  import "$lib/themecompare/before.css"
   import { page } from "$app/state"
   import TourRail from "$lib/tour/TourRail.svelte"
-  import { ThemeCompare } from "$lib/themecompare"
+  import ThemeToggle from "$lib/ThemeToggle.svelte"
   import { Sidebar, OperatorGate, ClientSwitcher, NAV_GROUPS, isOperatorChosen } from "$lib/cockpit"
   import { gatedRoute, cockpitRoute } from "$lib/os/stages"
 
   let { children, data } = $props()
 
   const path = $derived(page.url.pathname)
-  const isHome = $derived(path === "/")
   // Prospect-facing (/p) + client-facing (/report) pages never get internal chrome.
   const external = $derived(/^\/(p|report)\//.test(path))
 
@@ -23,14 +21,6 @@
   $effect(() => {
     mounted = true
     chosen = isOperatorChosen()
-  })
-
-  // The 2018 skin is a HOME-PAGE-ONLY preview. Anywhere else (esp. the cockpit)
-  // force the "instrument" (now) look so the retro skin never competes with the
-  // app chrome — even if a visitor left the toggle on "before" on the homepage.
-  $effect(() => {
-    if (typeof document === "undefined") return
-    if (path !== "/") document.documentElement.setAttribute("data-theme", "instrument")
   })
 
   // Show the cockpit shell when an operator is on a cockpit surface, OR when a
@@ -59,8 +49,9 @@
 {#if !external && !inShell}
   <TourRail />
 {/if}
-<!-- 2018 ↔ NOW theme compare: homepage only (it's a marketing delight, and it
-     competes with the cockpit chrome elsewhere). -->
-{#if isHome}
-  <ThemeCompare />
+<!-- Light/dark toggle — one instance, fixed in the top-right header corner across
+     every operator + marketing surface. Client-facing /p + /report inherit the
+     theme but show no chrome control. -->
+{#if !external}
+  <ThemeToggle floating />
 {/if}

@@ -34,36 +34,6 @@
     typeof window !== "undefined" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
-  // Scroll-linked recede for the 2018 "before" panel: writes --recede (0→1)
-  // across the element's pass through the viewport. rAF-throttled, passive.
-  function scrollRecede(node: HTMLElement) {
-    if (prefersReduced) return
-    let ticking = false
-    const update = () => {
-      ticking = false
-      const r = node.getBoundingClientRect()
-      const vh = window.innerHeight
-      // Stay fully visible until the panel's top scrolls above 12% of the
-      // viewport, then recede over the next half-screen as it exits upward.
-      const p = Math.min(Math.max((vh * 0.12 - r.top) / (vh * 0.5), 0), 1)
-      node.style.setProperty("--recede", p.toFixed(3))
-    }
-    const onScroll = () => {
-      if (!ticking) {
-        ticking = true
-        requestAnimationFrame(update)
-      }
-    }
-    update()
-    window.addEventListener("scroll", onScroll, { passive: true })
-    window.addEventListener("resize", onScroll, { passive: true })
-    return {
-      destroy() {
-        window.removeEventListener("scroll", onScroll)
-        window.removeEventListener("resize", onScroll)
-      },
-    }
-  }
 
   // Count a numeral up from 0 → target when it first enters view.
   function countUp(node: HTMLElement, opts: { to: number; decimals?: number; suffix?: string }) {
@@ -318,36 +288,6 @@
           <span class="hud text-base-content/50">{s.label}</span>
         </div>
       {/each}
-    </div>
-  </section>
-
-  <!-- ===================== PROOF: THIS DOMAIN ===================== -->
-  <section id="proof" class="border-line relative overflow-hidden border-t px-6 py-24 sm:px-10 lg:px-16 lg:py-32">
-    <div class="grid items-center gap-10 lg:grid-cols-2">
-      <div use:reveal>
-        <span class="hud">SEC. 03 / PROOF</span>
-        <h2 class="statement mt-4 text-[clamp(2.2rem,5.5vw,4.6rem)]">Proof:<br />This Domain.</h2>
-        <p class="text-base-content/70 mt-5 max-w-md text-[15px] leading-relaxed">
-          Today OS&rsquo;s first assignment was its own client&rsquo;s website &mdash; It&rsquo;s
-          Today Media, 2018 WordPress and clip art. The rebuild you&rsquo;re reading is the output;
-          the &ldquo;before&rdquo; is one toggle away.
-        </p>
-        <p class="hud text-primary mt-5">
-          &swarr; SEE IT YOURSELF — HIT THE [ 2018 &harr; NOW ] CHIP, BOTTOM-LEFT.
-        </p>
-      </div>
-      <figure class="recede-old border-line border" use:scrollRecede>
-        <img
-          src="/img/before-2018.webp"
-          alt="It's Today Media's website as it stood in 2018 — a flat clip-art hero on a white background"
-          class="block h-auto w-full"
-          loading="lazy"
-        />
-        <figcaption class="hud border-line flex items-center justify-between border-t px-4 py-3">
-          <span>FIG. 00 — THE SITE, &copy; 2018</span>
-          <span class="hidden sm:inline">WORDPRESS · CLIP ART</span>
-        </figcaption>
-      </figure>
     </div>
   </section>
 
