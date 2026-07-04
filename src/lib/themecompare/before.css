@@ -1,0 +1,92 @@
+/* BEFORE skin — an evocation of itstoday.org circa 2018 (FIG. 00 on the
+   homepage): white background, dark default text, plain blue underlined
+   links, default-ish serif/sans fonts, flattened gradient-free buttons.
+   Not a pixel revert — a tasteful override layer over the SAME tokens the
+   "instrument" theme (src/app.css) uses, activated by [data-theme="before"]
+   on <html> (see ThemeCompare.svelte). Same layout, same content, degraded
+   style only. */
+
+:root[data-theme="before"] {
+  color-scheme: light;
+  --color-base-100: oklch(99% 0 0);
+  --color-base-200: oklch(95% 0 0);
+  --color-base-300: oklch(89% 0 0);
+  --color-base-content: oklch(22% 0 0);
+  --color-primary: oklch(45% 0.19 264);
+  --color-primary-content: oklch(99% 0 0);
+  --color-secondary: oklch(55% 0.04 264);
+  --color-secondary-content: oklch(99% 0 0);
+  --color-accent: oklch(45% 0.19 264);
+  --color-accent-content: oklch(99% 0 0);
+  --color-neutral: oklch(90% 0 0);
+  --color-neutral-content: oklch(22% 0 0);
+  --color-info: oklch(55% 0.12 240);
+  --color-info-content: oklch(99% 0 0);
+  --color-success: oklch(45% 0.12 145);
+  --color-success-content: oklch(99% 0 0);
+  --color-warning: oklch(65% 0.15 80);
+  --color-warning-content: oklch(20% 0.03 80);
+  --color-error: oklch(50% 0.19 25);
+  --color-error-content: oklch(99% 0 0);
+  --radius-selector: 0.1875rem;
+  --radius-field: 0.1875rem;
+  --radius-box: 0.1875rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+  /* hairline + muted-text tokens (src/app.css @theme block) */
+  --color-line: oklch(85% 0 0);
+  --color-muted: oklch(42% 0 0);
+  --font-display: Georgia, "Times New Roman", Times, serif;
+}
+
+/* De-fancify the instrument type system: the mono/tracked HUD label and the
+   huge tight-tracked statement headline both read as "modern branding" —
+   in BEFORE mode they read as plain default-ish web type instead. */
+[data-theme="before"] .hud {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.8125rem;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+[data-theme="before"] .statement {
+  font-weight: 700;
+  letter-spacing: normal;
+  line-height: 1.15;
+  text-transform: none;
+}
+
+/* Kill the grid overlay, corner registration marks, and the WebGL hero
+   vortex — all part of the "instrument" chrome, not the FIG. 00 evocation.
+   .scene-host is absolutely positioned (inset: 0) so hiding it causes no
+   layout shift. */
+[data-theme="before"] .blueprint {
+  background-image: none;
+}
+[data-theme="before"] .reg-mark {
+  display: none;
+}
+[data-theme="before"] .scene-host {
+  display: none;
+}
+
+/* Flatten buttons to 2018-basic: small rounding, no gradient/shadow. */
+[data-theme="before"] .btn {
+  border-radius: 3px;
+  box-shadow: none;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+}
+
+/* Plain blue underlined links — the quintessential 2018 tell. Scoped away
+   from chrome (.hud nav / the compare chip itself / buttons styled as
+   links) so active-state nav coloring keeps working. */
+[data-theme="before"] a:not(.btn):not(.hud):not(.theme-compare-chip) {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+[data-theme="before"] a:not(.btn):not(.hud):not(.theme-compare-chip):visited {
+  color: oklch(35% 0.12 300);
+}
