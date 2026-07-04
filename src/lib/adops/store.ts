@@ -20,7 +20,8 @@ import type { AdSpec, GateVerdict, Recommendation, RecommendationInput, RecSourc
 import { specToYaml } from "./types"
 import { applyRedFlagChecks, detectedWasteCents } from "./redflags"
 import { getLlmRecommendations, dedupeRecommendations } from "./recommend"
-import { loadDoctrine } from "./doctrine"
+// SEAM B (jst-vx1fv.7): the LLM lane grounds on the session's editable doctrine.
+import { getEffectiveDoctrine } from "./doctrineOverride"
 import { ACCOUNT_SEEDS, buildFixtureSpec, type AccountSeed, type Autonomy } from "./fixtures"
 import { currentSession } from "$lib/server/session"
 
@@ -218,7 +219,7 @@ export async function runAudit(accountId: string): Promise<AuditRunResult> {
 
   const now = new Date()
   const spec = buildFixtureSpec(accountId, now.toISOString())
-  const { recs: llmRecs, via } = await getLlmRecommendations(spec, loadDoctrine(account.provider), accountId)
+  const { recs: llmRecs, via } = await getLlmRecommendations(spec, getEffectiveDoctrine(account.provider), accountId)
   return performAudit(account, llmRecs, via, now)
 }
 

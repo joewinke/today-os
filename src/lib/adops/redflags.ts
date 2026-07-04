@@ -13,6 +13,9 @@
 
 import type { AdSpec, Campaign, AdGroup, MetricRow, Provider, RecommendationInput } from "./types"
 import { fmtUsd, fmtPct, ctr } from "./types"
+// SEAM A (jst-vx1fv.7): the meta frequency ceiling resolves through the session's
+// editable doctrine — override when set, the documented default otherwise.
+import { resolveMetaFrequencyCeiling } from "./doctrineOverride"
 
 // ─── Documented default thresholds (see doctrine RED FLAGS sections) ─────────
 
@@ -135,6 +138,8 @@ export function applyRedFlagChecks(spec: AdSpec): RecommendationInput[] {
   const byCampaign = metricIndex(spec, "campaign")
   const byKeyword = metricIndex(spec, "keyword")
   const window = spec.metrics.window_days
+  // Session-effective meta frequency ceiling (edited doctrine, else the default).
+  const metaFreqCeiling = resolveMetaFrequencyCeiling(META_MAX_FREQUENCY)
 
   // {p}-no-conversion-tracking — account spends, zero conversions anywhere.
   if (account.cost > 0 && account.conversions === 0) {
@@ -198,14 +203,14 @@ export function applyRedFlagChecks(spec: AdSpec): RecommendationInput[] {
     }
 
     // meta-high-frequency — audience burn (Meta only; frequency on campaign row).
-    if (spec.provider === "meta_ads" && enabled && (cm.frequency ?? 0) > META_MAX_FREQUENCY) {
+    if (spec.provider === "meta_ads" && enabled && (cm.frequency ?? 0) > metaFreqCeiling) {
       out.push(
         flag("meta-high-frequency", {
           type: "new_creative",
           target_level: "campaign",
           target_external_id: campaign.external_id,
           title: `Frequency ${cm.frequency?.toFixed(1)} on "${campaign.name}" — audience burn`,
-          rationale: `"${campaign.name}" is averaging frequency ${cm.frequency?.toFixed(1)} over ${window} days (doctrine ceiling: ${META_MAX_FREQUENCY}). The audience is being burned — CTR sinks, CPM rises, negative feedback climbs. Rotate fresh concepts or widen the audience.`,
+          rationale: `"${campaign.name}" is averaging frequency ${cm.frequency?.toFixed(1)} over ${window} days (doctrine ceiling: ${metaFreqCeiling}). The audience is being burned — CTR sinks, CPM rises, negative feedback climbs. Rotate fresh concepts or widen the audience.`,
           risk: "high",
           proposed_change: { action: "refresh_creative", frequency: cm.frequency },
         }),
