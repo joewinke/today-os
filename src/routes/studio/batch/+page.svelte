@@ -10,6 +10,7 @@
     tokenParts,
   } from "$lib/studio/edl"
   import { applyThemeScript, CAM_META, LEADS, PITCH_SCRIPT, fixtureSegs, leadFromTheme } from "$lib/studio/fixtures"
+  import { slugify } from "$lib/os/types"
   import EdlPanel from "$lib/studio/EdlPanel.svelte"
   import type { PageServerData } from "./$types"
 
@@ -106,6 +107,7 @@
                 <th class="px-2 py-2 font-medium">city</th>
                 <th class="hidden px-2 py-2 font-medium sm:table-cell">vertical</th>
                 <th class="px-2 py-2 font-medium">offer</th>
+                <th class="px-2 py-2 font-medium">landing</th>
               </tr>
             </thead>
             <tbody>
@@ -129,6 +131,18 @@
                   <td class="px-2 py-2 font-mono text-xs text-base-content/70">{l.city}</td>
                   <td class="hidden px-2 py-2 font-mono text-xs text-base-content/70 sm:table-cell">{l.vertical}</td>
                   <td class="hud px-2 py-2 normal-case">{l.offer}</td>
+                  <td class="px-2 py-2">
+                    <a
+                      href="/p/{slugify(l.company)}"
+                      target="_blank"
+                      rel="noopener"
+                      onclick={(e) => e.stopPropagation()}
+                      class="hud text-primary whitespace-nowrap hover:underline"
+                      aria-label="Open {l.company}'s landing page"
+                    >
+                      VIEW &rarr;
+                    </a>
+                  </td>
                 </tr>
               {/each}
             </tbody>

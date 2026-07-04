@@ -4,7 +4,7 @@
   import TerminalNav from "$lib/home/TerminalNav.svelte"
   import HudChrome from "$lib/home/HudChrome.svelte"
   import HeroScene from "$lib/home/HeroScene.svelte"
-  import { markTourStarted, MILESTONES } from "$lib/tour/tour"
+  import { markTourStarted } from "$lib/tour/tour"
 
   const prefersReduced =
     typeof window !== "undefined" &&
@@ -241,34 +241,37 @@
         PRODUCT.
       </p>
 
-      <div class="pointer-events-auto mt-10 flex flex-wrap items-center gap-x-6 gap-y-3">
-        <button
-          type="button"
-          onclick={() => {
-            markTourStarted()
-            smoothTo("begin")
-          }}
-          class="btn btn-primary btn-lg rounded-none px-8 font-mono text-sm tracking-[0.08em] uppercase"
+      <!-- HERO = THE SCAN. The pitch's climax: type your domain, watch the OS
+           build the whole demo around you. The input IS the primary action. -->
+      <div class="pointer-events-auto mt-10 flex flex-col gap-4">
+        <form
+          action="/funnel-score"
+          method="GET"
+          onsubmit={() => markTourStarted()}
+          class="border-line bg-base-100/70 flex w-full max-w-xl flex-col border backdrop-blur sm:flex-row"
         >
-          Start the Tour
-        </button>
-        <a
-          href="/os"
-          class="btn btn-outline btn-lg rounded-none px-8 font-mono text-sm tracking-[0.08em] uppercase"
-        >
-          Enter Today OS &rarr;
-        </a>
-        <!-- The four stops, surfaced up front so the demo structure is obvious
-             before you even start — not buried down the scroll. -->
-        <div class="hud text-base-content/45 flex flex-wrap items-center gap-x-3 gap-y-1">
-          <span class="text-base-content/60">LIVE DEMO · ~2 MIN</span>
-          <span class="text-base-content/25" aria-hidden="true">—</span>
-          {#each MILESTONES as m, i (m)}
-            <span class="whitespace-nowrap"><span class="text-primary">0{i + 1}</span>&nbsp;{m}</span>
-            {#if i < MILESTONES.length - 1}
-              <span class="text-base-content/25" aria-hidden="true">&rarr;</span>
-            {/if}
-          {/each}
+          <input type="hidden" name="run" value="1" />
+          <input
+            name="url"
+            type="text"
+            inputmode="url"
+            autocomplete="url"
+            placeholder="type your domain — e.g. acme.com"
+            aria-label="Your website URL to scan"
+            class="text-base-content placeholder:text-base-content/40 min-w-0 flex-1 bg-transparent px-4 py-4 font-mono text-sm focus:outline-none"
+          />
+          <button
+            type="submit"
+            class="btn btn-primary rounded-none border-0 px-8 font-mono text-sm tracking-[0.08em] whitespace-nowrap uppercase"
+          >
+            Scan my site &rarr;
+          </button>
+        </form>
+        <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
+          <a href="/os" class="hud text-primary transition-transform hover:translate-x-0.5">
+            Or enter Today OS &rarr;
+          </a>
+          <span class="hud text-base-content/35">LIVE · SCANS ANY SITE · ~3 MIN END TO END</span>
         </div>
       </div>
     </div>

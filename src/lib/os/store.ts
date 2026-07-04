@@ -134,6 +134,44 @@ export function getProspect(id: string): Prospect | null {
   return getState().prospects.find((p) => p.id === id) ?? null
 }
 
+/** Deterministic, believable "quick-scan" score for an illustrative peer — low-
+ *  to-mid (they have the same leaky-funnel problem the pitch is built on). */
+function quickScore(name: string): number {
+  let h = 0
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0
+  return 34 + (h % 31) // 34–64
+}
+
+/**
+ * The market map becomes the prospect queue: after a scan, the peers in the same
+ * market land on the board, each quick-scanned to its own score so their landing
+ * pages show a real number (illustrative — these are sample advertisers). Skips
+ * peers already on the board.
+ */
+export function addMarketProspects(
+  peers: { company: string; city: string; offer: string }[],
+  vertical: string,
+): void {
+  const s = getState()
+  let added = 0
+  for (const peer of peers) {
+    if (!peer.company) continue
+    if (s.prospects.some((p) => p.company.toLowerCase() === peer.company.toLowerCase())) continue
+    s.prospects.push({
+      id: `p-${(++s.seq).toString(36)}`,
+      company: peer.company,
+      city: peer.city,
+      offer: peer.offer,
+      vertical,
+      score: quickScore(peer.company),
+      stage: "new",
+      createdAt: Date.now(),
+    })
+    added++
+  }
+  if (added) log("scan", `Quick-scanned ${added} prospects across the ${vertical} market`)
+}
+
 /**
  * Move a prospect to a stage and fire the side effects that make the OS feel
  * alive: contacting bumps pitches-sent, booking a meeting bumps meetings, and

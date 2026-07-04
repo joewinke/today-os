@@ -1,13 +1,17 @@
 # Today OS
 
-**An AI marketing command center, demonstrated on It's Today Media's own brand.**
-Build Challenge submission — Joseph Winke.
+**The operating system for a performance-marketing firm** — find advertisers, pitch them with personalized video, operate their accounts behind human gates. Build Challenge submission — Joseph Winke.
 
-- **Live demo:** _(URL here)_
-- **The front door** (`/`) — itstoday.org, rebuilt. The 2018 WordPress site transformed into the experience a performance-marketing company should be shipping. This page is itself the demo of the landing-page-generation capability.
-- **The tool** (`/admin`) — an agentic ad-ops loop: accounts audited on a cadence, deterministic red-flag rules + LLM recommendations, human approval inbox, autonomy ladder with fail-closed spend caps.
-- **The studio** (`/studio`) — creative at batch scale: edit video like a document, let agents score and personalize it per lead.
-- **Funnel Score** (`/funnel-score`) — your existing lead magnet, made real: enter any URL, get a scored conversion teardown computed live.
+> It runs your actual business end to end. Type in any website — it scans it live and scores the funnel in two seconds. It maps the competitors in that market into a prospect queue, then personalizes a pitch video for every one of them from one shoot — real AI video, each prospect getting their own landing page with their own score on it. Close a deal on the pipeline board and that client's ad accounts light up in the console — where agents audit spend on a cadence, propose fixes with evidence and dollar impact, and a spend-cap gate refuses anything unsafe until a human approves. Every approval ticks the recovered waste onto your ledger.
+
+- **Live demo:** https://itstoday.marduk.app
+- **The dashboard** (`/os`) — the operating home screen: pipeline, accounts under management, waste recovered, pitches, meetings — plus a live activity feed. The lifecycle is the nav: **FIND · PITCH · CLOSE · RUN · PROVE.**
+- **FIND** (`/funnel-score`) — scan any URL, get a scored conversion teardown live, and map that market into a prospect queue.
+- **PITCH** (`/os/outreach`, `/studio`) — one shoot, personalized into a pitch video per prospect; each gets their own landing page with their own score.
+- **CLOSE** (`/os/pipeline`) — work the board; closing a deal spawns that client's ad accounts into RUN.
+- **RUN** (`/admin`) — an agentic ad-ops loop: cadence audits, deterministic red-flag rules + LLM recommendations, a human approval inbox, and an autonomy ladder with fail-closed spend caps.
+- **PROVE** (`/os/prove`) — approved changes tick the recovered-waste ledger; each client gets a monthly report.
+- **The front door** (`/`) — itstoday.org rebuilt; type your domain into the hero and watch the OS build the demo around you. This page is itself the landing-page-generation capability.
 
 ---
 
@@ -35,7 +39,7 @@ And because the contest brief said *build what matters to a media buying team* �
 
 ## What would you build next if this were your full-time job?
 
-In order:
+**The substrate.** This demo is the operating system's *experience* — the whole find → pitch → close → run → prove loop, made real and coherent, running in-memory with honest seams. What it doesn't have yet are its organs: a database, auth, real platform connectors, and real sends. The win pays for those. In order:
 
 1. **The apply path.** This demo proposes; production applies. API-first mutations for approved recommendations (Google Ads API, Meta Marketing API), each behind the same approval gate and spend caps, with dry-run diffs and one-click rollback. Where APIs are slow to grant access, **browser agents** log into the platform UI and execute the approved change — the same fallback I use in production to audit accounts on day one with nothing but an email and password, then upgrade to the API path when tokens clear.
 2. **The SSOT business database.** Fold offers, landing pages, creatives, spend, and revenue (network postbacks) into one schema so recommendations optimize for *margin per vertical*, not platform-local metrics. This is the difference between "pause the worst ad group" and "move budget to where EPC is actually earned."

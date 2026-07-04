@@ -65,14 +65,10 @@ function forward(p: Prospect, stage: PipelineStage): void {
 
 // ── URL slug ↔ prospect resolution ───────────────────────────────────────────
 
-/** Stable, url-safe slug from a business name ("Cobalt & Co." → "cobalt-and-co"). */
-export function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/&/g, " and ")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-}
+// Canonical slugify lives in types.ts (client-safe); re-export so both the
+// server resolver here and client-side link builders produce identical slugs.
+export { slugify } from "./types"
+import { slugify } from "./types"
 
 /** Resolve a /p/[prospect] slug to a live store prospect by id or name-slug. */
 export function findProspect(slug: string): Prospect | null {

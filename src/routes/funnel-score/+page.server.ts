@@ -4,14 +4,19 @@ import { analyzeUrl, type FunnelReport } from "$lib/home/funnelChecks"
 import { ITSTODAY_SNAPSHOT, SNAPSHOT_HOSTS, hostKey } from "$lib/home/snapshots"
 import { domainOf, activateCached, setScannedTheme, resetTheme, getActiveTheme } from "$lib/adops/theme"
 import { rethemeProposed } from "$lib/adops/store"
-import { addProspectFromScan } from "$lib/os/store"
+import { addProspectFromScan, addMarketProspects } from "$lib/os/store"
 import { buildThemeFromScan } from "$lib/server/scanTheme"
 
-/** Drop the scanned business onto the OS pipeline (FIND → CLOSE), once themed. */
+/**
+ * FIND → CLOSE: drop the scanned business onto the OS pipeline, and quick-scan
+ * its market peers onto the board too (each with its own score, so their landing
+ * pages show a real number). Runs once the theme (business + peers) is resolved.
+ */
 function addScannedProspect(score: number | null): void {
   const t = getActiveTheme()
   if (t.source !== "scanned") return // fresh scan not themed yet; skip until it is
   addProspectFromScan({ company: t.business, city: t.city, offer: t.offer, vertical: t.vertical, score })
+  addMarketProspects(t.peers, t.vertical)
 }
 
 /**

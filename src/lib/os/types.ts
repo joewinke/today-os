@@ -53,3 +53,16 @@ export interface DashboardMetric {
   /** Optional sub-label, e.g. "this month". */
   sub?: string
 }
+
+/**
+ * Stable, url-safe slug from a business name ("Cobalt & Co." → "cobalt-and-co").
+ * Client-safe (pure) so components can build /p/{slug} + /report/{slug} links;
+ * the server outreach module re-exports this so slugs never drift.
+ */
+export function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+}

@@ -22,7 +22,7 @@ export interface Stage {
 
 export const STAGES: Stage[] = [
   { key: "find", label: "FIND", blurb: "Scan a site, score it, map its market", href: "/funnel-score" },
-  { key: "pitch", label: "PITCH", blurb: "Personalized outreach video per prospect", href: "/studio" },
+  { key: "pitch", label: "PITCH", blurb: "Personalized outreach video per prospect", href: "/os/outreach" },
   { key: "close", label: "CLOSE", blurb: "Work the pipeline from prospect to won", href: "/os/pipeline" },
   { key: "run", label: "RUN", blurb: "Operate their ad accounts behind a gate", href: "/admin" },
   { key: "prove", label: "PROVE", blurb: "Waste recovered, results reported", href: "/os/prove" },
@@ -33,7 +33,7 @@ export function stageForPath(path: string): string | null {
   const p = path.replace(/\/$/, "") || "/"
   if (p === "/os" || p === "/os/dashboard") return null // the home screen, not a stage
   if (p.startsWith("/funnel-score")) return "find"
-  if (p.startsWith("/studio")) return "pitch"
+  if (p.startsWith("/os/outreach") || p.startsWith("/studio")) return "pitch"
   if (p.startsWith("/os/pipeline")) return "close"
   if (p.startsWith("/admin")) return "run"
   if (p.startsWith("/os/prove") || p.startsWith("/os/report")) return "prove"

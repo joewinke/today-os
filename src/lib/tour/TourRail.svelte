@@ -18,9 +18,12 @@
   })
 
   const rail = $derived(railFor(page.url.pathname))
+  // Never leak internal chrome onto the prospect-facing landing pages (/p) or the
+  // client-facing report (/report) — those are shown to Matt's prospects/clients.
+  const external = $derived(/^\/(p|report)\//.test(page.url.pathname))
   // On the homepage (stop 0) the rail only appears once the tour has begun; on
   // every real tour surface it's always present — the spine the reviewer follows.
-  const show = $derived(!!rail && (rail.n !== 0 || (mounted && started)))
+  const show = $derived(!external && !!rail && (rail.n !== 0 || (mounted && started)))
 
   // Give the document bottom padding so a page's last content clears the bar.
   $effect(() => {
