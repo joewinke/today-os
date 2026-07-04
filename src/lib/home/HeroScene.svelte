@@ -116,7 +116,10 @@
       const MOUTH = 2.7
       const THROAT = 0.16
       const TOP = 2.25
-      const SPAN = 4.7
+      const SPAN = 3.7 // mouth → throat: the refining funnel
+      const T_OUT = 0.8 // last 20% of the cycle: refined output pours below the throat
+      const OUTPUT_DROP = 1.9 // how far gems fall out the bottom, into the cobalt underglow
+      const T_TRACE = 0.12 // first 12%: raw traffic streaks in as thin traces
 
       const geo = new THREE.IcosahedronGeometry(0.052, 0)
       const mat = new THREE.MeshStandardMaterial({
@@ -133,6 +136,9 @@
       const speeds = new Float32Array(COUNT)
       const jitters = new Float32Array(COUNT)
       const scales = new Float32Array(COUNT)
+      // Each particle's fully-refined color; the displayed color is this dimmed
+      // by how far the particle has been refined (see placeParticle).
+      const baseCol = new Float32Array(COUNT * 3)
       const dummy = new THREE.Object3D()
       const tint = new THREE.Color()
 
@@ -142,26 +148,57 @@
         speeds[i] = 0.05 + Math.random() * 0.09
         jitters[i] = (Math.random() - 0.5) * 0.5
         scales[i] = 0.55 + Math.random() * 0.9
-        if (Math.random() < 0.2) {
+        // mostly cobalt gems (varied depth) + a few chrome sparkles
+        if (Math.random() < 0.18) {
           tint.copy(chrome)
         } else {
-          tint.copy(cobalt).multiplyScalar(0.65 + Math.random() * 0.65)
+          tint.copy(cobalt).multiplyScalar(0.7 + Math.random() * 0.6)
         }
+        baseCol[i * 3] = tint.r
+        baseCol[i * 3 + 1] = tint.g
+        baseCol[i * 3 + 2] = tint.b
         mesh.setColorAt(i, tint)
       }
       if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
 
       function placeParticle(i: number) {
         const t = ts[i]
-        const shrink = Math.pow(1 - t, 1.8)
-        const r = THROAT + (MOUTH - THROAT) * shrink + jitters[i] * (1 - t)
-        const y = TOP - SPAN * t
+        let r: number, y: number, refine: number
+        if (t < T_OUT) {
+          // Descend + refine through the funnel: mouth → throat.
+          const tn = t / T_OUT
+          const shrink = Math.pow(1 - tn, 1.8)
+          r = THROAT + (MOUTH - THROAT) * shrink + jitters[i] * (1 - tn)
+          y = TOP - SPAN * tn
+          refine = tn
+        } else {
+          // Refined output: pour out of the throat, fan slightly, fall into the glow.
+          const to = (t - T_OUT) / (1 - T_OUT)
+          r = THROAT + 0.34 * Math.sin(to * Math.PI) + jitters[i] * 0.12 * to
+          y = TOP - SPAN - OUTPUT_DROP * to
+          refine = 1
+        }
         dummy.position.set(r * Math.cos(thetas[i]), y, r * Math.sin(thetas[i]))
-        const s = scales[i] * (0.45 + 0.75 * (1 - t * 0.65))
-        dummy.scale.setScalar(s)
+
+        // Raw trace → gem: tiny + vertically streaked at the mouth, growing into a
+        // full faceted gemstone as it refines.
+        const gem = scales[i] * (0.3 + 0.95 * refine)
+        if (t < T_TRACE) {
+          const streak = 1 - t / T_TRACE
+          dummy.scale.set(gem * (1 - 0.45 * streak), gem * (1 + 2.6 * streak), gem * (1 - 0.45 * streak))
+        } else {
+          dummy.scale.setScalar(gem)
+        }
         dummy.rotation.set(thetas[i], t * 6, thetas[i] * 0.5)
         dummy.updateMatrix()
         mesh.setMatrixAt(i, dummy.matrix)
+
+        // Dim raw traces brighten into vivid gems, brightest as they pour out.
+        const bright = 0.26 + 1.05 * refine + (t >= T_OUT ? 0.28 : 0)
+        mesh.setColorAt(
+          i,
+          tint.setRGB(baseCol[i * 3] * bright, baseCol[i * 3 + 1] * bright, baseCol[i * 3 + 2] * bright),
+        )
       }
 
       function stepParticles(dt: number) {
@@ -175,6 +212,7 @@
           placeParticle(i)
         }
         mesh.instanceMatrix.needsUpdate = true
+        if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
       }
 
       // ---- chrome rings ----
@@ -195,7 +233,8 @@
       })
       const throatRing = new THREE.Mesh(new THREE.TorusGeometry(0.52, 0.03, 20, 90), throatRingMat)
       throatRing.rotation.x = Math.PI / 2
-      throatRing.position.y = TOP - SPAN * 0.78
+      // The output aperture — refined gems pour out here into the underglow.
+      throatRing.position.y = TOP - SPAN
       rig.add(throatRing)
 
       // ---- interaction / loop ----
