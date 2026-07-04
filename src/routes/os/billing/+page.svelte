@@ -5,8 +5,8 @@
   let { data }: { data: PageServerData } = $props()
 
   const lines = [
-    { label: "Monthly retainer", value: "$1,800" },
-    { label: "8% of managed ad spend", value: "$1,240" },
+    { label: "Monthly retainer", value: "$18,000" },
+    { label: "8% of managed ad spend", value: "$12,400" },
   ]
 </script>
 
