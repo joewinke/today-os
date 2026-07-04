@@ -111,29 +111,6 @@
   }
 }
 
-/* ── zoom warp: streaks fly outward from center (lightspeed) ──
-   The wrapper's opacity is scroll-driven (--zw); the flight itself loops so
-   streaks keep streaming for however long the visitor dwells in the beat. */
-@media (prefers-reduced-motion: no-preference) {
-  .hq2 .hq2-streak {
-    animation: hq2-warpfly 850ms linear infinite;
-    animation-delay: calc(var(--delay, 0) * -850ms);
-  }
-  @keyframes hq2-warpfly {
-    from {
-      transform: rotate(var(--ang)) translateY(calc(var(--off) * 1vmin)) scaleY(0.25);
-      opacity: 0;
-    }
-    12% {
-      opacity: 1;
-    }
-    to {
-      transform: rotate(var(--ang)) translateY(calc((var(--off) + 85) * 1vmin)) scaleY(1.7);
-      opacity: 0.9;
-    }
-  }
-}
-
 /* ── machine idle hum: the active-station scan line breathes ── */
 @media (prefers-reduced-motion: no-preference) {
   .hq2 .hq2-scan {

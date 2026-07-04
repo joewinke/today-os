@@ -4,15 +4,6 @@
   import { machine, gate } from "$lib/haoqi2/scene"
   import { STATIONS, GATE_CHIPS, LEDE, FIXTURES } from "$lib/haoqi2/copy"
   import HeroScene from "$lib/home/HeroScene.svelte"
-
-  // Warp streaks for the zoom-into-the-gem beat. Deterministic per index
-  // (no Math.random) so SSR and client render identically.
-  const STREAKS = Array.from({ length: 28 }, (_, i) => ({
-    ang: (i * 360) / 28 + ((i * 47) % 11),
-    delay: ((i * 137) % 100) / 100,
-    len: 14 + ((i * 61) % 24),
-    off: 6 + ((i * 29) % 14),
-  }))
 </script>
 
 <svelte:head>
@@ -176,17 +167,12 @@
         OUTPUT: CUSTOMER ACQUIRED · <span class="hq2-output-blue">LEDGER +</span> · LOOP RE-ARMED — NEXT PASS QUEUED
       </p>
 
-      <!-- hyperspace push INTO the gem: warp streaks, then an ink cover that
-           makes the un-pin seamless against the gate section's background -->
-      <div class="hq2-warp" aria-hidden="true">
-        {#each STREAKS as s, i (i)}
-          <span
-            class="hq2-streak"
-            style="--ang: {s.ang}deg; --delay: {s.delay}; --len: {s.len}; --off: {s.off};"
-          ></span>
-        {/each}
-      </div>
-      <div class="hq2-zoomcover" aria-hidden="true"></div>
+      <!-- power-down: the stage darkens to ink, the rail flashes into one hot
+           line, the line collapses to a dot, the dot blinks out (CRT-off) —
+           so the un-pin scrolls flat ink against the gate section's flat ink -->
+      <div class="hq2-shutveil" aria-hidden="true"></div>
+      <div class="hq2-shutline" aria-hidden="true"></div>
+      <span class="hq2-shutdot" aria-hidden="true"></span>
     </div>
 
     <!-- the five stations in flow: screen readers always, small screens and
@@ -565,10 +551,13 @@
     /* phase vars written by the machine action */
     --p: 0;
     --out: 0;
-    /* zoom phase: chrome fade / warp streaks / ink cover */
+    /* power-down phase: chrome fade / ink veil / hot line / residue dot */
     --zf: 0;
-    --zw: 0;
-    --zc: 0;
+    --zv: 0;
+    --zl: 0;
+    --zlo: 0;
+    --zd: 0;
+    --zdo: 0;
   }
 
   /* heading: screen readers always; becomes the visible section head in the
@@ -800,12 +789,6 @@
     transform: translate3d(0, 0, 0) translate(-50%, -50%);
     will-change: transform;
   }
-  /* the giant drop-shadow gets expensive (and pointless) once the gem is
-     scaled to viewport size — drop it for the zoom flight. (:global because
-     data-zooming is set at runtime by the scroll action.) */
-  .hq2-track :global([data-zooming] .hq2-glint) {
-    filter: none;
-  }
   .hq2-state {
     position: absolute;
     inset: 0;
@@ -852,38 +835,52 @@
     color: var(--hq2-blue-text);
   }
 
-  /* ── the zoom-into-the-gem beat ── */
-  /* warp streaks: radial lightspeed lines flying outward from center while
-     the gem rushes at the camera; visibility is scroll-driven (--zw) */
-  .hq2-warp {
+  /* ── the power-down beat (CRT-off) ── */
+  /* ink veil: the whole stage fades to flat ink so the un-pin scrolls
+     ink-against-ink into the gate section — no visible seam */
+  .hq2-shutveil {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    opacity: var(--zw, 0);
+    background: var(--hq2-ink);
+    opacity: var(--zv, 0);
   }
-  .hq2-streak {
+  /* the hot line: the machine's rail, condensed — flashes across the center
+     then collapses from both ends toward the middle */
+  .hq2-shutline {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 2px;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--hq2-blue-text) 18%,
+      var(--hq2-paper) 50%,
+      var(--hq2-blue-text) 82%,
+      transparent
+    );
+    box-shadow: 0 0 18px 1px color-mix(in oklch, var(--hq2-blue) 65%, transparent);
+    transform: translateY(-50%) scaleX(var(--zl, 0));
+    transform-origin: center center;
+    opacity: var(--zlo, 0);
+  }
+  /* the residue dot: everything the machine did, held in one point of light —
+     it blinks out, and the gate section's vertical hairline inherits the spot */
+  .hq2-shutdot {
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 2px;
-    height: calc(var(--len) * 1vmin);
-    background: linear-gradient(
-      to top,
-      color-mix(in oklch, var(--hq2-paper) 85%, transparent),
-      var(--hq2-blue-text),
-      transparent
-    );
-    transform-origin: center top;
-    transform: rotate(var(--ang)) translateY(calc(var(--off) * 1vmin));
-  }
-  /* ink cover: fades in over the final beat so the un-pin scrolls flat ink
-     against the gate section's flat ink — no visible seam */
-  .hq2-zoomcover {
-    position: absolute;
-    inset: 0;
+    width: 7px;
+    height: 7px;
+    border-radius: 9999px;
     pointer-events: none;
-    opacity: var(--zc, 0);
-    background: radial-gradient(85% 85% at 50% 50%, var(--hq2-blue-deep) 0%, var(--hq2-ink) 62%);
+    background: var(--hq2-paper);
+    box-shadow: 0 0 22px 7px color-mix(in oklch, var(--hq2-blue) 75%, transparent);
+    transform: translate(-50%, -50%) scale(var(--zd, 0));
+    opacity: var(--zdo, 0);
   }
 
   /* the in-flow station list: hidden visually on the pinned desktop stage,
