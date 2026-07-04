@@ -3,7 +3,10 @@
  *
  * No dependencies. Two pinned scenes:
  *   machine — a workpiece travels a horizontal track through five stations and is
- *             progressively cut from rough stone into the polished gem.
+ *             progressively cut from rough stone into the polished gem; the final
+ *             beat is a hyperspace push INTO the gem (warp streaks + exponential
+ *             scale) that resolves to ink so the un-pin hands off seamlessly to
+ *             the gate section (no visible seam against its flat background).
  *   gate    — proposal chips queue at a center hairline; two cross with APPROVED
  *             stamps, one is refused and stays.
  *
@@ -45,17 +48,40 @@ export const machine: Action<HTMLElement> = (node) => {
   const N = Math.max(stations.length, 1)
 
   const setVars = (p: number) => {
-    node.style.setProperty("--p", p.toFixed(4))
-    // travel: the piece dwells slightly at the ends
-    const t = smooth(p, 0.04, 0.92)
-    const out = smooth(p, 0.93, 0.995)
+    // Phase map: travel (stations) → output chip → zoom INTO the gem.
+    const t = smooth(p, 0.03, 0.68)
+    const out = smooth(p, 0.7, 0.77)
+    const z = smooth(p, 0.8, 0.995)
+    // progress readouts (prog bar + lit rail) complete when the piece arrives
+    node.style.setProperty("--p", Math.min(Math.max((p - 0.03) / 0.65, 0), 1).toFixed(4))
     node.style.setProperty("--out", out.toFixed(4))
+    // zoom sub-phases: chrome fades early, warp streaks mid-flight, ink cover last
+    node.style.setProperty("--zf", smooth(z, 0, 0.22).toFixed(3))
+    node.style.setProperty("--zw", (smooth(z, 0.06, 0.3) * (1 - smooth(z, 0.78, 0.92))).toFixed(3))
+    node.style.setProperty("--zc", smooth(z, 0.84, 0.97).toFixed(3))
 
-    // piece position along the track (px, measured)
+    // piece position along the track (px, measured); during the zoom phase it
+    // drifts to the viewport center while scaling exponentially — lightspeed
+    // into the facets rather than a linear grow
     if (track && piece) {
       const w = track.clientWidth
       const x = (0.02 + 0.96 * t) * w
-      piece.style.transform = `translate3d(${x.toFixed(1)}px, -50%, 0) translateX(-50%)`
+      if (z > 0) {
+        const r = track.getBoundingClientRect()
+        const zt = smooth(z, 0.02, 0.55)
+        const dx = window.innerWidth / 2 - (r.left + x)
+        const dy = window.innerHeight / 2 - r.top
+        const pw = piece.clientWidth || 96
+        const sEnd = (Math.max(window.innerWidth, window.innerHeight) * 2.6) / pw
+        const s = Math.pow(sEnd, Math.pow(z, 1.55))
+        piece.dataset.zooming = "1"
+        piece.style.transform =
+          `translate3d(${(x + dx * zt).toFixed(1)}px, ${(dy * zt).toFixed(1)}px, 0) ` +
+          `translate(-50%, -50%) rotate(${(z * 10).toFixed(2)}deg) scale(${s.toFixed(2)})`
+      } else {
+        delete piece.dataset.zooming
+        piece.style.transform = `translate3d(${x.toFixed(1)}px, 0, 0) translate(-50%, -50%)`
+      }
     }
 
     // station activation + completion

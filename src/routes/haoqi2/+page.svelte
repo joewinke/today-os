@@ -3,6 +3,16 @@
   import { reveal } from "$lib/actions/reveal"
   import { machine, gate } from "$lib/haoqi2/scene"
   import { STATIONS, GATE_CHIPS, LEDE, FIXTURES } from "$lib/haoqi2/copy"
+  import HeroScene from "$lib/home/HeroScene.svelte"
+
+  // Warp streaks for the zoom-into-the-gem beat. Deterministic per index
+  // (no Math.random) so SSR and client render identically.
+  const STREAKS = Array.from({ length: 28 }, (_, i) => ({
+    ang: (i * 360) / 28 + ((i * 47) % 11),
+    delay: ((i * 137) % 100) / 100,
+    len: 14 + ((i * 61) % 24),
+    off: 6 + ((i * 29) % 14),
+  }))
 </script>
 
 <svelte:head>
@@ -73,6 +83,8 @@
 <div class="hq2">
   <!-- ============================= HERO ============================= -->
   <header class="hq2-hero blueprint">
+    <!-- the funnel vortex from the main LP: raw stones in, polished gems out -->
+    <HeroScene />
     <span class="hq2-cross" style="left: 10%; top: 18%;" aria-hidden="true"></span>
     <span class="hq2-cross" style="right: 12%; bottom: 22%;" aria-hidden="true"></span>
 
@@ -163,6 +175,18 @@
       <p class="hud hq2-output">
         OUTPUT: CUSTOMER ACQUIRED · <span class="hq2-output-blue">LEDGER +</span> · LOOP RE-ARMED — NEXT PASS QUEUED
       </p>
+
+      <!-- hyperspace push INTO the gem: warp streaks, then an ink cover that
+           makes the un-pin seamless against the gate section's background -->
+      <div class="hq2-warp" aria-hidden="true">
+        {#each STREAKS as s, i (i)}
+          <span
+            class="hq2-streak"
+            style="--ang: {s.ang}deg; --delay: {s.delay}; --len: {s.len}; --off: {s.off};"
+          ></span>
+        {/each}
+      </div>
+      <div class="hq2-zoomcover" aria-hidden="true"></div>
     </div>
 
     <!-- the five stations in flow: screen readers always, small screens and
@@ -536,11 +560,15 @@
   /* ========================== THE MACHINE ========================== */
   .hq2-machine {
     position: relative;
-    height: 460vh;
+    height: 560vh; /* extra ~100vh feeds the zoom-into-the-gem beat */
     border-top: 1px solid var(--hq2-line);
     /* phase vars written by the machine action */
     --p: 0;
     --out: 0;
+    /* zoom phase: chrome fade / warp streaks / ink cover */
+    --zf: 0;
+    --zw: 0;
+    --zc: 0;
   }
 
   /* heading: screen readers always; becomes the visible section head in the
@@ -579,6 +607,7 @@
     justify-content: space-between;
     gap: 1.5rem;
     padding: 1.4rem 1.5rem 1.1rem;
+    opacity: calc(1 - var(--zf, 0));
   }
   @media (min-width: 640px) {
     .hq2-mhud {
@@ -609,6 +638,7 @@
     right: 1.5rem;
     height: 1px;
     background: var(--hq2-line);
+    opacity: calc(1 - var(--zf, 0));
   }
   @media (min-width: 640px) {
     .hq2-prog {
@@ -631,6 +661,7 @@
     left: 1.5rem;
     top: 17vh;
     display: grid;
+    opacity: calc(1 - var(--zf, 0));
   }
   .hq2-linewrap {
     position: absolute;
@@ -638,6 +669,7 @@
     top: calc(17vh + clamp(4rem, 10vw, 8.5rem));
     display: grid;
     max-width: min(42rem, 82vw);
+    opacity: calc(1 - var(--zf, 0));
   }
   @media (min-width: 640px) {
     .hq2-verbwrap,
@@ -703,6 +735,7 @@
     top: 0;
     height: 1px;
     background: var(--hq2-line);
+    opacity: calc(1 - var(--zf, 0));
   }
   .hq2-rail--lit {
     background: var(--hq2-blue);
@@ -714,6 +747,7 @@
     position: absolute;
     top: 0;
     /* --a (activation) and --done written per-station by the action */
+    opacity: calc(1 - var(--zf, 0));
   }
   .hq2-scan {
     position: absolute;
@@ -763,8 +797,14 @@
     top: 0;
     width: clamp(58px, 7vw, 96px);
     height: clamp(58px, 7vw, 96px);
-    transform: translate3d(0, -50%, 0) translateX(-50%);
+    transform: translate3d(0, 0, 0) translate(-50%, -50%);
     will-change: transform;
+  }
+  /* the giant drop-shadow gets expensive (and pointless) once the gem is
+     scaled to viewport size — drop it for the zoom flight. (:global because
+     data-zooming is set at runtime by the scroll action.) */
+  .hq2-track :global([data-zooming] .hq2-glint) {
+    filter: none;
   }
   .hq2-state {
     position: absolute;
@@ -804,12 +844,46 @@
     left: 50%;
     bottom: 9vh;
     transform: translateX(-50%) translateY(calc((1 - var(--out)) * 12px));
-    opacity: var(--out);
+    opacity: calc(var(--out) * (1 - var(--zf, 0)));
     white-space: nowrap;
     color: color-mix(in oklch, var(--hq2-paper) 80%, transparent);
   }
   .hq2-output-blue {
     color: var(--hq2-blue-text);
+  }
+
+  /* ── the zoom-into-the-gem beat ── */
+  /* warp streaks: radial lightspeed lines flying outward from center while
+     the gem rushes at the camera; visibility is scroll-driven (--zw) */
+  .hq2-warp {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: var(--zw, 0);
+  }
+  .hq2-streak {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 2px;
+    height: calc(var(--len) * 1vmin);
+    background: linear-gradient(
+      to top,
+      color-mix(in oklch, var(--hq2-paper) 85%, transparent),
+      var(--hq2-blue-text),
+      transparent
+    );
+    transform-origin: center top;
+    transform: rotate(var(--ang)) translateY(calc(var(--off) * 1vmin));
+  }
+  /* ink cover: fades in over the final beat so the un-pin scrolls flat ink
+     against the gate section's flat ink — no visible seam */
+  .hq2-zoomcover {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: var(--zc, 0);
+    background: radial-gradient(85% 85% at 50% 50%, var(--hq2-blue-deep) 0%, var(--hq2-ink) 62%);
   }
 
   /* the in-flow station list: hidden visually on the pinned desktop stage,
@@ -908,7 +982,8 @@
   .hq2-gatepin {
     position: relative;
     height: 230vh;
-    border-top: 1px solid var(--hq2-line);
+    /* no border-top: the machine's zoom cover exits on flat ink and this
+       section opens on flat ink — a hairline here would re-draw the seam */
     /* phase vars written by the gate action */
     --g: 0;
     --gl: 0;
