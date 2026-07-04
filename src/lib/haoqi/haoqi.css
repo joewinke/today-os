@@ -1,0 +1,75 @@
+/* /haoqi — keyframes + motion utilities for the alternate LP.
+   @keyframes must live in a real stylesheet, not a component <style> (Svelte's
+   vitePreprocess trips on them). Everything here is transform/opacity only and
+   is fully disabled under prefers-reduced-motion. Scoped under .haoqi-page so it
+   can never leak into other routes. */
+
+/* ── floating stickers ── */
+@media (prefers-reduced-motion: no-preference) {
+  .haoqi-page .hq-float-a {
+    animation: hq-float-a 7s ease-in-out infinite;
+  }
+  .haoqi-page .hq-float-b {
+    animation: hq-float-b 9s ease-in-out infinite;
+  }
+  @keyframes hq-float-a {
+    0%,
+    100% {
+      transform: translateY(0) rotate(-3deg);
+    }
+    50% {
+      transform: translateY(-14px) rotate(3deg);
+    }
+  }
+  @keyframes hq-float-b {
+    0%,
+    100% {
+      transform: translateY(0) rotate(4deg);
+    }
+    50% {
+      transform: translateY(12px) rotate(-2deg);
+    }
+  }
+}
+
+/* ── findings marquee ── */
+.haoqi-page .hq-marquee {
+  display: flex;
+  width: max-content;
+  gap: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .haoqi-page .hq-marquee {
+    animation: hq-marquee 34s linear infinite;
+  }
+  @keyframes hq-marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+}
+
+/* ── gloss sheen: a slow specular wipe across the "today" word ── */
+@media (prefers-reduced-motion: no-preference) {
+  .haoqi-page .hq-gloss-sheen::after {
+    animation: hq-sheen 6.5s ease-in-out infinite;
+  }
+  @keyframes hq-sheen {
+    0%,
+    62%,
+    100% {
+      transform: translateX(-120%) skewX(-18deg);
+      opacity: 0;
+    }
+    72% {
+      opacity: 0.85;
+    }
+    88% {
+      transform: translateX(220%) skewX(-18deg);
+      opacity: 0;
+    }
+  }
+}

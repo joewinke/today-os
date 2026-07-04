@@ -277,52 +277,10 @@
     </div>
   </section>
 
-  <!-- ===================== FLAGSHIP CASE STUDY ===================== -->
-  <section id="case" class="border-line relative overflow-hidden border-t px-6 py-24 sm:px-10 lg:px-16 lg:py-32">
-    <div class="mb-12 flex flex-col gap-3" use:reveal>
-      <span class="hud">SEC. 02 / CASE STUDY</span>
-      <h2 class="statement text-[clamp(2.2rem,5.5vw,4.6rem)]">This Site Is<br />the Case Study.</h2>
-      <p class="text-base-content/70 max-w-2xl text-[15px] leading-relaxed">
-        Today OS rebuilt It&rsquo;s Today Media. Every pixel, every video, every audit on this domain
-        came out of the tool &mdash; same company, same headline, same Baltimore phone number. You
-        are standing in the output.
-      </p>
-    </div>
-
-    <div class="grid items-center gap-10 lg:grid-cols-[1fr_auto_1fr]">
-      <figure class="recede-old border-line border" use:scrollRecede>
-        <img
-          src="/img/before-2018.webp"
-          alt="It's Today Media's website as it stood in 2018 — a flat clip-art hero on a white background"
-          class="block h-auto w-full"
-          loading="lazy"
-        />
-        <figcaption class="hud border-line flex items-center justify-between border-t px-4 py-3">
-          <span>FIG. 00 — THE SITE, &copy; 2018</span>
-          <span class="hidden sm:inline">WORDPRESS · CLIP ART</span>
-        </figcaption>
-      </figure>
-
-      <div class="hud hidden text-center lg:block" aria-hidden="true">
-        <div class="statement text-4xl">&rarr;</div>
-      </div>
-
-      <div class="flex flex-col gap-5" use:reveal>
-        <span class="hud text-primary">FIG. 01 — THE SITE, NOW · YOU ARE HERE</span>
-        <p class="statement text-[clamp(1.8rem,4vw,3rem)]">See It<br />For Yourself.</p>
-        <p class="text-base-content/70 max-w-md text-[15px] leading-relaxed">
-          Want proof it&rsquo;s the same site, reskinned by the tool? Flip it back to the 2018
-          original and forward again &mdash; the toggle is live.
-        </p>
-        <p class="hud text-primary">&darr; TOGGLE THE 2018 SKIN YOURSELF — CHIP AT BOTTOM-LEFT</p>
-      </div>
-    </div>
-  </section>
-
   <!-- ===================== LIVE FIXTURES ===================== -->
   <section id="live" class="border-line border-t px-6 py-24 sm:px-10 lg:px-16 lg:py-32">
     <div class="mb-8 flex flex-col gap-3" use:reveal>
-      <span class="hud">SEC. 03 / LIVE FIXTURES</span>
+      <span class="hud">SEC. 02 / LIVE FIXTURES</span>
       <h2 class="statement text-[clamp(2.2rem,5.5vw,4.6rem)]">Running<br />Right Now.</h2>
       <p class="text-base-content/70 max-w-2xl text-[15px] leading-relaxed">
         Account hygiene doesn&rsquo;t scale with account count. Inside Today OS the loop runs on a
@@ -363,15 +321,45 @@
     </div>
   </section>
 
+  <!-- ===================== PROOF: THIS DOMAIN ===================== -->
+  <section id="proof" class="border-line relative overflow-hidden border-t px-6 py-24 sm:px-10 lg:px-16 lg:py-32">
+    <div class="grid items-center gap-10 lg:grid-cols-2">
+      <div use:reveal>
+        <span class="hud">SEC. 03 / PROOF</span>
+        <h2 class="statement mt-4 text-[clamp(2.2rem,5.5vw,4.6rem)]">Proof:<br />This Domain.</h2>
+        <p class="text-base-content/70 mt-5 max-w-md text-[15px] leading-relaxed">
+          Today OS&rsquo;s first assignment was its own client&rsquo;s website &mdash; It&rsquo;s
+          Today Media, 2018 WordPress and clip art. The rebuild you&rsquo;re reading is the output;
+          the &ldquo;before&rdquo; is one toggle away.
+        </p>
+        <p class="hud text-primary mt-5">
+          &swarr; SEE IT YOURSELF — HIT THE [ 2018 &harr; NOW ] CHIP, BOTTOM-LEFT.
+        </p>
+      </div>
+      <figure class="recede-old border-line border" use:scrollRecede>
+        <img
+          src="/img/before-2018.webp"
+          alt="It's Today Media's website as it stood in 2018 — a flat clip-art hero on a white background"
+          class="block h-auto w-full"
+          loading="lazy"
+        />
+        <figcaption class="hud border-line flex items-center justify-between border-t px-4 py-3">
+          <span>FIG. 00 — THE SITE, &copy; 2018</span>
+          <span class="hidden sm:inline">WORDPRESS · CLIP ART</span>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
   <!-- ===================== CONTEST ENTRY ===================== -->
   <section id="contest" class="border-line border-t px-6 py-24 sm:px-10 lg:px-16 lg:py-32">
     <div class="flex flex-col gap-6" use:reveal>
       <span class="hud">SEC. 04 / CONTEST ENTRY</span>
-      <h2 class="statement text-[clamp(2.2rem,5.5vw,4.6rem)]">Built for the<br />Build Challenge.</h2>
+      <h2 class="statement text-[clamp(2.2rem,5.5vw,4.6rem)]">Built Inside the<br />Build Challenge.</h2>
       <p class="text-base-content/70 max-w-2xl text-[15px] leading-relaxed">
-        Today OS is my entry to the It&rsquo;s Today Media Build Challenge. The README answers the
-        three questions the contest asks &mdash; what it does, why this one, and what I&rsquo;d build
-        next with the substrate.
+        The case study, the contest entry, and the product are the same object: Today OS was built
+        inside It&rsquo;s Today Media&rsquo;s Build Challenge, on It&rsquo;s Today Media&rsquo;s own
+        domain. The README answers what it does, why this one, and what I&rsquo;d build next.
       </p>
       <div class="mt-2 flex flex-wrap items-center gap-5">
         <a
