@@ -13,8 +13,8 @@ export const load: PageServerLoad = async () => {
 
 export const actions: Actions = {
   // SEND seam — advances the stage + logs a pitch activity via the store.
-  // "CONNECTS TO YOUR ESP IN PRODUCTION": here it moves the demo state; the page
-  // then schedules clearly-SIMULATED open/watch signals client-side.
+  // "SANDBOX SEND — CONNECTS TO YOUR ESP WHEN LIVE": here it moves the sandbox
+  // state; the page then schedules clearly-SANDBOX open/watch signals client-side.
   send: async ({ request }) => {
     const form = await request.formData()
     const id = String(form.get("id") ?? "").trim()

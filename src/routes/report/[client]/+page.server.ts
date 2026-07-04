@@ -8,7 +8,7 @@
  * a won client's "waste recovered" is the firm total divided across accounts
  * under management (labeled as attributed, not exact); everything else on
  * the page is seeded fixture data. An unknown slug renders a fully seeded
- * SAMPLE REPORT so the page always has something to show a fresh visitor.
+ * SANDBOX REPORT so the page always has something to show a fresh visitor.
  */
 
 import type { PageServerLoad } from "./$types"
@@ -58,7 +58,7 @@ export const load: PageServerLoad = async ({ params }) => {
   const isSample = !match
   const rand = seededRandom(slug)
 
-  const clientName = match?.company ?? "Sample Client"
+  const clientName = match?.company ?? "Sandbox Client"
   const city = match?.city ?? "Anytown"
   const vertical = match?.vertical ?? "home services"
 

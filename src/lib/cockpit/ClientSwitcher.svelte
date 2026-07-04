@@ -113,7 +113,7 @@
 
 <div class="relative p-2" onfocusout={onFocusOut}>
   <p class="hud text-muted/60 mb-1 px-1 text-[0.5625rem] leading-tight">
-    client workspaces — full filtering ships with the substrate
+    sandbox — full workspace filtering ships with the substrate
   </p>
 
   <button

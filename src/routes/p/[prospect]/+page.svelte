@@ -133,7 +133,7 @@
             Book a 15-min call &rarr;
           </button>
         </form>
-        <p class="hud text-base-content/35 mt-3">CONNECTS TO YOUR CALENDAR IN PRODUCTION</p>
+        <p class="hud text-base-content/35 mt-3">SANDBOX — BOOKING CONNECTS TO YOUR CALENDAR WHEN LIVE</p>
       {/if}
     </section>
 

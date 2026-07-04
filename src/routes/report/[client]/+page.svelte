@@ -37,7 +37,7 @@
 <div class="report-sheet bg-base-100 text-base-content min-h-screen">
   <div class="mx-auto max-w-3xl px-4 py-8 sm:px-8 sm:py-12 print:max-w-none print:px-0 print:py-6">
     {#if data.client.isSample}
-      <p class="hud text-warning mb-4">SAMPLE REPORT — "{data.client.slug}" not found, showing example data</p>
+      <p class="hud text-warning mb-4">SANDBOX REPORT — "{data.client.slug}" not found, showing example data</p>
     {/if}
 
     <header class="mb-8 border-b pb-6" style="border-color: var(--color-line)">
@@ -73,7 +73,7 @@
       <p class="text-base-content/50 mt-3 text-sm">
         {data.wasteRecovered.source === "store"
           ? "attributed share of waste recovered across accounts under management"
-          : "sample figure — illustrative only"}
+          : "sandbox figure — illustrative only"}
       </p>
     </section>
 

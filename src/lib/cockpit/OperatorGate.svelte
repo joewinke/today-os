@@ -2,8 +2,8 @@
   OperatorGate — the login MOMENT, not real auth.
 
   A full-screen blueprint card that asks the visitor to step into the operator's
-  seat. Both choices behave identically (this is a demo substrate); the honest seam
-  line says so. Choosing records a flag in sessionStorage (`todayos-operator`) and
+  seat. Both choices behave identically (this is a sandbox substrate); the honest
+  seam line says so. Choosing records a flag in sessionStorage (`todayos-operator`) and
   calls `onenter` so the layout can drop the gate and render the cockpit.
 
   Real auth ships with the substrate — see /readme.
@@ -53,7 +53,7 @@
     </button>
 
     <p class="hud text-muted/70 mt-6 leading-relaxed">
-      Demo session — real auth ships with the substrate
+      Sandbox session — real auth ships with the substrate
       <a href="/readme" class="text-base-content/70 hover:text-primary underline underline-offset-2">(see /readme)</a>.
     </p>
   </div>

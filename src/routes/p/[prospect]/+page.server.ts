@@ -13,16 +13,17 @@ export const load: PageServerLoad = async ({ params }) => {
 }
 
 export const actions: Actions = {
-  // BOOK seam — "CONNECTS TO YOUR CALENDAR IN PRODUCTION". For a real pipeline
-  // prospect it advances the stage to "meeting" and logs a booking; for the
-  // sample fallback it still records the intent so the OS heartbeat reflects it.
+  // BOOK seam — "SANDBOX — BOOKING CONNECTS TO YOUR CALENDAR WHEN LIVE". For a
+  // real pipeline prospect it advances the stage to "meeting" and logs a
+  // booking; for the sandbox fallback it still records the intent so the OS
+  // heartbeat reflects it.
   book: async ({ request }) => {
     const form = await request.formData()
     const id = String(form.get("id") ?? "").trim()
     const isSample = String(form.get("sample") ?? "") === "1"
 
     if (isSample || !id) {
-      emitActivity("meeting", "A sample landing page requested a 15-min call")
+      emitActivity("meeting", "A sandbox landing page requested a 15-min call")
       return { booked: true }
     }
 

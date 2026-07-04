@@ -41,7 +41,7 @@ If it's useful, grab a 15-minute call right from that page and we'll walk it liv
     return { subject, body }
   }
 
-  // ── SIMULATED post-send signals: clearly labeled, client-only, cleaned up ──
+  // ── SANDBOX post-send signals: clearly labeled, client-only, cleaned up ──
   type Sim = { id: string; label: string }
   let sims = $state<Record<string, Sim[]>>({})
   const timers: ReturnType<typeof setTimeout>[] = []
@@ -50,8 +50,8 @@ If it's useful, grab a 15-minute call right from that page and we'll walk it liv
   function scheduleSimulated(pid: string): void {
     sims[pid] = []
     const steps = [
-      { delay: 1400, label: "SIMULATED · EMAIL OPENED" },
-      { delay: 3800, label: "SIMULATED · VIDEO WATCHED 60%" },
+      { delay: 1400, label: "SANDBOX · EMAIL OPENED" },
+      { delay: 3800, label: "SANDBOX · VIDEO WATCHED 60%" },
     ]
     for (const s of steps) {
       const t = setTimeout(() => {
@@ -77,8 +77,8 @@ If it's useful, grab a 15-minute call right from that page and we'll walk it liv
     <h1 class="statement tracking-in-expand mt-2 text-4xl sm:text-5xl">Outreach</h1>
     <p class="text-base-content/60 mt-2 max-w-2xl text-sm">
       Every scanned prospect gets a personalized pitch — email copy from their own score, a rendered
-      teardown video, and a landing page with their numbers on it. Send is the seam:
-      <span class="text-base-content/80">it connects to your ESP in production.</span>
+      teardown video, and a landing page with their numbers on it.
+      <span class="text-base-content/80">Sandbox send — connects to your ESP when live.</span>
     </p>
   </header>
 
@@ -164,7 +164,7 @@ If it's useful, grab a 15-minute call right from that page and we'll walk it liv
                 {sent ? "Re-send pitch" : "Send pitch"} &rarr;
               </button>
             </form>
-            <p class="hud text-base-content/35 text-center leading-tight">CONNECTS TO YOUR ESP IN PRODUCTION</p>
+            <p class="hud text-base-content/35 text-center leading-tight">SANDBOX SEND · CONNECTS TO YOUR ESP WHEN LIVE</p>
 
             <a
               href="/p/{p.slug}"
@@ -175,9 +175,9 @@ If it's useful, grab a 15-minute call right from that page and we'll walk it liv
           </div>
         </div>
 
-        <!-- Post-send SIMULATED signal timeline -->
+        <!-- Post-send SANDBOX signal timeline -->
         {#if sims[p.id]?.length}
-          <ul class="border-line mt-3 flex flex-wrap gap-2 border-t pt-3" aria-label="Simulated engagement signals">
+          <ul class="border-line mt-3 flex flex-wrap gap-2 border-t pt-3" aria-label="Sandbox engagement signals">
             {#each sims[p.id] as sig (sig.id)}
               <li class="hud text-primary/80 border-line border px-2 py-1">◹ {sig.label}</li>
             {/each}
