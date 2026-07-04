@@ -184,3 +184,46 @@ export function recordWasteRecovered(cents: number, label?: string): void {
   s.wasteRecoveredCents += cents
   log("gate", `Recovered ${money(cents)}/mo in wasted spend${label ? ` — ${label}` : ""}`)
 }
+
+const NEXT_STAGE: Record<PipelineStage, PipelineStage | null> = {
+  new: "queued",
+  queued: "contacted",
+  contacted: "meeting",
+  meeting: "won",
+  won: null,
+}
+
+/**
+ * POLISH: compress a week of operation into one click. The overnight cadence
+ * sweeps the managed accounts and recovers waste, the pipeline advances, and new
+ * outreach goes out — so the dashboard visibly accumulates. Deterministic-ish
+ * (varies by state) so repeated clicks keep moving without a firehose.
+ */
+export function advanceWeek(): void {
+  const s = getState()
+
+  // Overnight cadence recovered waste across managed accounts.
+  const recovered = 180_000 + (s.accountsManaged * 62_000 + (s.seq % 7) * 24_000)
+  s.wasteRecoveredCents += recovered
+  log("sweep", `Weekly cadence: swept ${s.accountsManaged} accounts — recovered ${money(recovered)}/mo`)
+
+  // Advance the two furthest-along open prospects one stage each.
+  const open = s.prospects.filter((p) => p.stage !== "won").sort((a, b) => a.createdAt - b.createdAt)
+  for (const p of open.slice(0, 2)) {
+    const next = NEXT_STAGE[p.stage]
+    if (!next) continue
+    p.stage = next
+    if (next === "meeting") {
+      s.meetingsBooked += 1
+      log("meeting", `Meeting booked with ${p.company}`)
+    } else if (next === "won") {
+      p.spawnedAccounts = true
+      s.accountsManaged += 1
+      log("won", `Closed-won: ${p.company} — accounts spawned into RUN`)
+    }
+  }
+
+  // New outreach went out to the market.
+  s.pitchesSent += 3
+  log("pitch", "Outreach sequence sent to 3 new prospects this week")
+}

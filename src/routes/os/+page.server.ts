@@ -1,5 +1,5 @@
-import type { PageServerLoad } from "./$types"
-import { getMetrics, getActivity, getProspects } from "$lib/os/store"
+import type { PageServerLoad, Actions } from "./$types"
+import { getMetrics, getActivity, getProspects, advanceWeek } from "$lib/os/store"
 
 /** Relative "2h ago" formatting done server-side so SSR and hydration agree. */
 function ago(at: number, now: number): string {
@@ -19,4 +19,11 @@ export const load: PageServerLoad = async () => {
     activity: getActivity(9).map((a) => ({ ...a, ago: ago(a.at, now) })),
     prospects: getProspects().slice(0, 6),
   }
+}
+
+export const actions: Actions = {
+  advanceWeek: async () => {
+    advanceWeek()
+    return { ok: true as const }
+  },
 }
