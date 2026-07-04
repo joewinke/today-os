@@ -1,23 +1,10 @@
 <script lang="ts">
-  import { enhance } from "$app/forms"
-  import { invalidateAll } from "$app/navigation"
-  import type { SubmitFunction } from "@sveltejs/kit"
   import { reveal } from "$lib/actions/reveal"
   import { STAGES } from "$lib/os/stages"
   import { PIPELINE_STAGES } from "$lib/os/types"
   import type { PageServerData } from "./$types"
 
   let { data }: { data: PageServerData } = $props()
-
-  let advancing = $state(false)
-  const onAdvance: SubmitFunction = () => {
-    advancing = true
-    return async ({ update }) => {
-      await update({ reset: false })
-      await invalidateAll()
-      advancing = false
-    }
-  }
 
   const kindMark: Record<string, string> = {
     scan: "◇",
@@ -52,23 +39,12 @@
         operates from. Here's what the machine did overnight.
       </p>
     </div>
-    <div class="flex flex-wrap items-center gap-3">
-      <form method="POST" action="?/advanceWeek" use:enhance={onAdvance}>
-        <button
-          type="submit"
-          disabled={advancing}
-          class="btn btn-outline rounded-none px-5 font-mono text-sm tracking-[0.08em] uppercase disabled:opacity-50"
-        >
-          {advancing ? "Running…" : "▶ Advance a week"}
-        </button>
-      </form>
-      <a
-        href="/funnel-score"
-        class="btn btn-primary rounded-none px-6 font-mono text-sm tracking-[0.08em] uppercase"
-      >
-        Scan a prospect &rarr;
-      </a>
-    </div>
+    <a
+      href="/funnel-score"
+      class="btn btn-primary rounded-none px-6 font-mono text-sm tracking-[0.08em] uppercase"
+    >
+      Scan a prospect &rarr;
+    </a>
   </header>
 
   <!-- Operating numbers -->

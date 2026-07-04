@@ -6,9 +6,11 @@
   collapsed a fixed "reveal" button brings it back. State persists in sessionStorage
   under `todayos-sidebar`.
 
-  Motion discipline: width SNAPS between states (never animated — width is a layout
-  property). What animates is the label's opacity/transform as it fades in/out, and
-  the mobile drawer's transform. All motion is gated behind motion-safe.
+  Motion discipline: on desktop the width animates smoothly between states via
+  `transition-[width]` (300ms ease-out) — matching jst's canonical three-state rail.
+  Labels fade/slide as they enter/leave, and the mobile drawer slides via transform.
+  On first mount the collapse toggle gives a one-time nudge (t-input-shake) hinting
+  the menu can be adjusted. All motion is gated behind motion-safe / reduced-motion.
 
   Mobile (< md): the rail becomes an off-canvas overlay drawer opened by a hamburger,
   closed by a backdrop tap, Escape, or navigation.
@@ -41,6 +43,24 @@
       if (saved === "expanded" || saved === "rail" || saved === "collapsed") mode = saved
     } catch {
       /* private mode / no storage — keep default */
+    }
+  })
+
+  // One-time load nudge — briefly shake the collapse toggle to hint the menu can
+  // be adjusted (adapted from the JAT session-overlay discoverability hint: flip a
+  // flag on after the shell settles, then off once the animation has played). The
+  // .t-input-shake class is already disabled under prefers-reduced-motion, and we
+  // skip the timers entirely when reduced motion is requested.
+  let hintActive = $state(false)
+  onMount(() => {
+    const reduceMotion =
+      typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches
+    if (reduceMotion) return
+    const on = setTimeout(() => (hintActive = true), 600)
+    const off = setTimeout(() => (hintActive = false), 1200)
+    return () => {
+      clearTimeout(on)
+      clearTimeout(off)
     }
   })
 
@@ -119,10 +139,10 @@
 {#if mode === "collapsed"}
   <button
     type="button"
-    onclick={() => setMode("rail")}
+    onclick={() => setMode("expanded")}
     class="hud border-line bg-base-100 text-base-content/70 hover:text-base-content fixed left-2 top-2 z-20 hidden h-9 w-9 items-center justify-center border md:flex"
-    aria-label="Show sidebar"
-    title="Show sidebar"
+    aria-label="Expand sidebar"
+    title="Expand sidebar"
   >
     <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3l5 5-5 5" /></svg>
   </button>
@@ -149,7 +169,8 @@
   class="border-line bg-base-100 fixed inset-y-0 left-0 z-40 flex w-[min(15rem,82vw)] flex-col overflow-hidden border-r
          {mobileOpen ? 'translate-x-0' : '-translate-x-full'}
          motion-safe:transition-transform motion-safe:duration-200
-         md:static md:z-30 md:h-screen md:w-[var(--sb-w)] md:translate-x-0 md:transition-none"
+         md:static md:z-30 md:h-screen md:w-[var(--sb-w)] md:translate-x-0
+         motion-safe:md:transition-[width] motion-safe:md:duration-300 motion-safe:md:ease-out"
   aria-label="Cockpit navigation"
   aria-hidden={mode === "collapsed" ? "true" : undefined}
 >
@@ -161,6 +182,7 @@
     <button
       type="button"
       onclick={cycle}
+      class:t-input-shake={hintActive}
       class="border-line text-base-content/50 hover:text-base-content ml-auto flex h-7 w-7 items-center justify-center border {isRail ? 'mx-auto ml-0' : ''}"
       aria-label={cycleTitle}
       title={cycleTitle}

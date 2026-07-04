@@ -44,22 +44,13 @@
     <p class="hud text-muted mb-1">Today OS · Operator Access</p>
     <h1 class="statement mb-6 text-3xl">Step into<br />the seat</h1>
 
-    <div class="flex flex-col gap-2">
-      <button
-        type="button"
-        onclick={() => choose("operator")}
-        class="btn btn-primary hud w-full justify-center rounded-none"
-      >
-        Continue as Matt — Operator
-      </button>
-      <button
-        type="button"
-        onclick={() => choose("guest")}
-        class="hud border-line text-base-content/70 hover:text-base-content hover:border-base-content/40 w-full border py-2.5 text-center transition-colors"
-      >
-        Guest — read-only
-      </button>
-    </div>
+    <button
+      type="button"
+      onclick={() => choose("operator")}
+      class="btn btn-primary hud w-full justify-center rounded-none"
+    >
+      Continue as Matt — Operator
+    </button>
 
     <p class="hud text-muted/70 mt-6 leading-relaxed">
       Demo session — real auth ships with the substrate

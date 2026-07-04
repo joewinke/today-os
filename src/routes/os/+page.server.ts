@@ -1,5 +1,5 @@
-import type { PageServerLoad, Actions } from "./$types"
-import { getMetrics, getActivity, getProspects, advanceWeek } from "$lib/os/store"
+import type { PageServerLoad } from "./$types"
+import { getMetrics, getActivity, getProspects } from "$lib/os/store"
 
 /** Relative "2h ago" formatting done server-side so SSR and hydration agree. */
 function ago(at: number, now: number): string {
@@ -20,10 +20,7 @@ export const load: PageServerLoad = async () => {
     prospects: getProspects().slice(0, 6),
   }
 }
-
-export const actions: Actions = {
-  advanceWeek: async () => {
-    advanceWeek()
-    return { ok: true as const }
-  },
-}
+// "Advance a week" control removed from the dashboard (Joe: it exposed the sim
+// interactively and competed for the primary-action slot). The cadence story is
+// carried by the "overnight" framing + the seeded activity feed. advanceWeek()
+// stays in the store (tests use it); it's just no longer wired to the UI.

@@ -12,6 +12,7 @@
   let { children, data } = $props()
 
   const path = $derived(page.url.pathname)
+  const isHome = $derived(path === "/")
   // Prospect-facing (/p) + client-facing (/report) pages never get internal chrome.
   const external = $derived(/^\/(p|report)\//.test(path))
 
@@ -22,6 +23,14 @@
   $effect(() => {
     mounted = true
     chosen = isOperatorChosen()
+  })
+
+  // The 2018 skin is a HOME-PAGE-ONLY preview. Anywhere else (esp. the cockpit)
+  // force the "instrument" (now) look so the retro skin never competes with the
+  // app chrome — even if a visitor left the toggle on "before" on the homepage.
+  $effect(() => {
+    if (typeof document === "undefined") return
+    if (path !== "/") document.documentElement.setAttribute("data-theme", "instrument")
   })
 
   // Show the cockpit shell when an operator is on a cockpit surface, OR when a
@@ -50,6 +59,8 @@
 {#if !external && !inShell}
   <TourRail />
 {/if}
-{#if !external}
+<!-- 2018 ↔ NOW theme compare: homepage only (it's a marketing delight, and it
+     competes with the cockpit chrome elsewhere). -->
+{#if isHome}
   <ThemeCompare />
 {/if}
