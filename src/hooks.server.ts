@@ -13,6 +13,16 @@ import { withSession } from "$lib/server/session"
 let counter = 0
 
 export const handle: Handle = async ({ event, resolve }) => {
+  // Canonical-domain redirect: the app lives at todayos.marduk.app (matching
+  // the today-os repo name); the original itstoday.marduk.app address 301s
+  // here so pre-rename links keep working.
+  if (event.url.host === "itstoday.marduk.app") {
+    return new Response(null, {
+      status: 301,
+      headers: { location: `https://todayos.marduk.app${event.url.pathname}${event.url.search}` },
+    })
+  }
+
   let sid = event.cookies.get("sid")
   if (!sid) {
     sid = `s_${(++counter).toString(36)}_${Math.floor(performance.now()).toString(36)}`

@@ -4,7 +4,7 @@
 
 > Type in any website — Today OS scans the funnel live and scores it in two seconds, then maps that market into a prospect queue. One shoot becomes a personalized pitch video for every prospect, each with their own landing page carrying their own score. Close a deal on the pipeline board and that client's ad accounts light up in the console — where agents audit spend on a cadence, propose fixes with evidence and dollar impact, and a spend-cap gate refuses anything unsafe until a human approves. Every approval ticks the recovered waste onto a ledger, and each client gets a monthly report. **Agents propose. Humans approve.**
 
-- **Live:** https://itstoday.marduk.app — enter as the operator; the app runs in **sandbox mode** (the real product on safe data, connect an account to go live).
+- **Live:** https://todayos.marduk.app — enter as the operator; the app runs in **sandbox mode** (the real product on safe data, connect an account to go live).
 - **The cockpit** (`/os`) — the operating home screen: pipeline, accounts under management, waste recovered, pitches, meetings, and a live activity feed, behind a three-state sidebar. The lifecycle is the navigation: **FIND · PITCH · CLOSE · RUN · PROVE.**
 - **FIND** (`/funnel-score`) — scan any URL for a scored conversion teardown, live, and map that market into a prospect queue.
 - **PITCH** (`/os/outreach`, `/studio`) — one shoot, personalized into a pitch video per prospect; each gets their own landing page with their own score.
